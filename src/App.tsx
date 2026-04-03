@@ -252,6 +252,8 @@ const CustomCursor = () => {
   const cursorRef = useRef<HTMLDivElement>(null);
   const pos = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
   const mouse = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+  const currentScale = useRef(1);
+  const targetScale = useRef(1);
   const [isActive, setIsActive] = useState(false);
   const speed = 0.15;
 
@@ -315,8 +317,12 @@ const CustomCursor = () => {
       const angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
       const stretch = Math.min(velocity * 0.05, 1);
-      scaleXSet(1 + stretch);
-      scaleYSet(1 - stretch * 0.5);
+      
+      // Smoothly interpolate scale
+      currentScale.current += (targetScale.current - currentScale.current) * dt;
+
+      scaleXSet(currentScale.current * (1 + stretch));
+      scaleYSet(currentScale.current * (1 - stretch * 0.5));
       rotationSet(angle);
 
       lastX = mouse.current.x;
@@ -349,11 +355,7 @@ const CustomCursor = () => {
         };
 
         const onMouseEnter = () => {
-          gsap.to(cursor, {
-            scale: 2,
-            duration: 0.4,
-            ease: "power3.out",
-          });
+          targetScale.current = 2;
         };
 
         const onMouseLeave = () => {
@@ -363,11 +365,7 @@ const CustomCursor = () => {
             duration: 0.8,
             ease: "elastic.out(1, 0.3)",
           });
-          gsap.to(cursor, {
-            scale: 1,
-            duration: 0.4,
-            ease: "power3.out",
-          });
+          targetScale.current = 1;
         };
 
         element.addEventListener("mousemove", onMouseMove);
