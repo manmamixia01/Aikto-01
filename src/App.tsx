@@ -160,7 +160,7 @@ const translations = {
       title: "SOARA",
       allArticles: "ALL ARTICLES",
       soaraTitle: "The Japan Birdman Rally.",
-      soaraDesc: "Developing a control system for a student-led team aiming to become the first-ever high school participants in the Birdman Rally.",
+      soaraDesc: "I'm in charge of developing the flight control system for a voluntary group aiming to be the first-ever high school team to compete in the Birdman Rally.",
       readMore: "READ MORE"
     },
     reboot: {
@@ -222,7 +222,7 @@ const translations = {
       title: "SOARA",
       allArticles: "ALL ARTICLES",
       soaraTitle: "史上初の高校生チームとして鳥人間コンテストの出場を目指す有志団体で制御システムを開発",
-      soaraDesc: "史上初の高校生チームとして鳥人間コンテストの出場を目指す有志団体で、機体の制御システム開発を担当。",
+      soaraDesc: "I'm in charge of developing the flight control system for a voluntary group aiming to be the first-ever high school team to compete in the Birdman Rally.",
       readMore: "READ MORE"
     },
     reboot: {
@@ -949,9 +949,3 @@ export default function App() {
     </div>
   );
 }
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-
