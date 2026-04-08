@@ -131,7 +131,7 @@ const translations = {
       contact: "CONTACT"
     },
     hero: {
-      description: "B. 2008. A system-level creator bridging technology,\ndesign, and society to build from scratch.\nImplementing across domains from hardware\nprototyping to web development, video,\nand music production.",
+      description: "A system-level creator bridging technology,\ndesign, and society to build from scratch.\nImplementing across domains from hardware\nprototyping to web development, video,\nand music production.",
       viewProjects: "VIEW PROJECTS",
       aboutMe: "ABOUT ME",
       scroll: "SCROLL"
@@ -160,7 +160,7 @@ const translations = {
       title: "SOARA",
       allArticles: "ALL ARTICLES",
       soaraTitle: "The Japan Birdman Rally.",
-      soaraDesc: "I'm in charge of developing the flight control system for a voluntary group aiming to be the first-ever high school team to compete in the Birdman Rally.",
+      soaraDesc: "Developing a control system for a student-led team aiming to become the first-ever high school participants in the Birdman Rally.",
       readMore: "READ MORE"
     },
     reboot: {
@@ -193,7 +193,7 @@ const translations = {
       contact: "CONTACT"
     },
     hero: {
-      description: "2008年生まれ。テクノロジー、デザイン、社会を掛け合わせ、\nゼロから仕組みを創り出す。\nハードウェアのプロトタイピングからWeb開発、\n映像・音楽制作まで、領域を横断して実装する\nシステムレベル・クリエイター。",
+      description: "テクノロジー、デザイン、社会を掛け合わせ、\nゼロから仕組みを創り出す。\nハードウェアのプロトタイピングからWeb開発、\n映像・音楽制作まで、領域を横断して実装する\nシステムレベル・クリエイター。",
       viewProjects: "VIEW PROJECTS",
       aboutMe: "ABOUT ME",
       scroll: "SCROLL"
@@ -222,7 +222,7 @@ const translations = {
       title: "SOARA",
       allArticles: "ALL ARTICLES",
       soaraTitle: "史上初の高校生チームとして鳥人間コンテストの出場を目指す有志団体で制御システムを開発",
-      soaraDesc: "I'm in charge of developing the flight control system for a voluntary group aiming to be the first-ever high school team to compete in the Birdman Rally.",
+      soaraDesc: "史上初の高校生チームとして鳥人間コンテストの出場を目指す有志団体で、機体の制御システム開発を担当。",
       readMore: "READ MORE"
     },
     reboot: {
@@ -755,7 +755,7 @@ const NewsSection = ({ lang }: { lang: 'en' | 'jp' }) => {
           </div>
           {t.readMore && (
             <div className="flex">
-              <a href="#" className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-white/70 hover:text-white transition-colors magnetic py-2 pr-4">
+              <a href="https://www.soarahpa.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-white/70 hover:text-white transition-colors magnetic py-2 pr-4">
                 {t.readMore} <ArrowUpRight size={14} />
               </a>
             </div>
@@ -841,7 +841,7 @@ const Footer = ({ lang }: { lang: 'en' | 'jp' }) => {
                 <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-expo" />
                 <Globe size={18} className="relative z-10" />
               </a>
-              <a href="#" className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-colors duration-500 group relative overflow-hidden">
+              <a href="https://x.com/Aki_H2008" target="_blank" rel="noopener noreferrer" className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-colors duration-500 group relative overflow-hidden">
                 <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-expo" />
                 <Twitter size={18} className="relative z-10" />
               </a>
@@ -938,9 +938,9 @@ export default function App() {
               <button className="bg-white text-black px-10 py-5 font-bold text-lg hover:bg-white/90 transition-colors magnetic">
                 {translations[lang].cta.getInTouch}
               </button>
-              <button className="border border-white/20 px-10 py-5 font-bold text-lg hover:bg-white/10 transition-colors magnetic">
+              <a href="https://x.com/Aki_H2008" target="_blank" rel="noopener noreferrer" className="border border-white/20 px-10 py-5 font-bold text-lg hover:bg-white/10 transition-colors magnetic inline-block">
                 {translations[lang].cta.followX}
-              </button>
+              </a>
             </div>
           </div>
         </section>
