@@ -59,7 +59,7 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
             >
               Establishing Connection
             </motion.span>
-            <span className="text-xl font-bold tracking-tighter text-white">AKITO_HATTORI_HP</span>
+            <span className="text-xl font-bold tracking-tighter text-white">AKITO_HATTORI</span>
           </div>
           <div className="flex flex-col items-end">
             <span className="text-4xl font-bold font-display tracking-tighter tabular-nums">
