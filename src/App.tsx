@@ -16,9 +16,12 @@ import {
   Search,
   ArrowUpRight,
   ChevronDown,
-  Twitter
+  Twitter,
+  ArrowLeft,
+  Box,
+  MoveRight
 } from "lucide-react";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import gsap from "gsap";
 
 const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
@@ -59,7 +62,7 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
             >
               Establishing Connection
             </motion.span>
-            <span className="text-xl font-bold tracking-tighter text-white">AKITO_HATTORI</span>
+            <span className="text-xl font-bold tracking-tighter text-white">AKITO_HATTORI_HP</span>
           </div>
           <div className="flex flex-col items-end">
             <span className="text-4xl font-bold font-display tracking-tighter tabular-nums">
@@ -332,7 +335,7 @@ const CustomCursor = () => {
     gsap.ticker.add(updateCursor);
 
     const initMagnetic = () => {
-      const magneticElements = document.querySelectorAll("a, .magnetic, button, .cursor-pointer");
+      const magneticElements = document.querySelectorAll("a:not(.no-magnetic), .magnetic, button:not(.no-magnetic), .cursor-pointer:not(.no-magnetic)");
       magneticElements.forEach((el) => {
         const element = el as HTMLElement;
         if (element.dataset.magneticInit) return;
@@ -774,7 +777,7 @@ const NewsSection = ({ lang }: { lang: 'en' | 'jp' }) => {
   );
 };
 
-const RebootingRebuildSection = ({ lang }: { lang: 'en' | 'jp' }) => {
+const RebootingRebuildSection = ({ lang, onOpenKineticFit }: { lang: 'en' | 'jp', onOpenKineticFit: () => void }) => {
   const t = translations[lang].reboot;
   return (
     <section className="grid grid-cols-1 md:grid-cols-2">
@@ -800,28 +803,283 @@ const RebootingRebuildSection = ({ lang }: { lang: 'en' | 'jp' }) => {
         </div>
       </div>
 
-      {/* Rebuild The Arsenal */}
-      <div className="relative aspect-square md:aspect-auto md:h-[800px] overflow-hidden group">
+      {/* Rebuild The Arsenal - Links to Kinetic Fit */}
+      <div 
+        onClick={onOpenKineticFit}
+        className="relative aspect-square md:aspect-auto md:h-[800px] overflow-hidden group cursor-pointer border-l border-white/10 no-magnetic"
+        role="button"
+        tabIndex={0}
+      >
         <img 
           src="https://github.com/manmamixia01/Web-public/blob/main/keybord.jpg?raw=true" 
           alt="Rebuild The Arsenal" 
-          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 pointer-events-none"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
-        <div className="absolute top-0 left-0 p-12 w-full flex justify-between items-start">
+        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors pointer-events-none" />
+        <div className="absolute top-0 left-0 p-12 w-full flex justify-between items-start pointer-events-none">
           <h2 className="text-4xl font-bold font-display tracking-tighter uppercase">{t.band}</h2>
-          <a href="#" className="flex items-center gap-2 text-xs font-bold tracking-widest text-white hover:text-white/70 transition-colors magnetic">
+          <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-white group-hover:text-white/70 transition-colors magnetic pointer-events-auto">
             {t.readMore} <ArrowUpRight size={14} />
-          </a>
+          </div>
         </div>
-        <div className="absolute bottom-12 right-12">
+        <div className="absolute bottom-12 right-12 pointer-events-none">
           <p className="text-6xl md:text-8xl font-bold font-display tracking-tighter text-white/90">
             Ac — 2025
           </p>
         </div>
       </div>
     </section>
+  );
+};
+
+const kineticFitTranslations = {
+  en: {
+    title: "Kinetic Fit",
+    subtitle: "- Revolutionizing keyboard entry by simply waving your hand over your smartphone -",
+    introTitle: "RESEARCH OVERVIEW",
+    introText: "Researching the optimization of keyboard layouts through hand kinematics analysis. By capturing the unique movement patterns and anatomical structure of an individual's hand, we generate custom ergonomic designs that minimize strain and maximize efficiency.",
+    workflowTitle: "DEVELOPMENT PROCESS",
+    steps: [
+      { id: "01", title: "True Depth Data", desc: "Acquire depth information using True Depth camera sensors.", image: "https://github.com/manmamixia01/Web-public/blob/main/1.png?raw=true" },
+      { id: "02", title: "Hand 3D Data", desc: "Process and prepare detailed 3D data of the human hand.", image: "https://github.com/manmamixia01/Web-public/blob/main/2.png?raw=true" },
+      { id: "03", title: "Multiview Capture", desc: "Store photos from various angles along with camera telemetry.", image: "https://github.com/manmamixia01/Web-public/blob/main/3.png?raw=true" },
+      { id: "04", title: "Joint Prediction", desc: "Predict joint positions using MediaPipe's computer vision.", image: "https://github.com/manmamixia01/Web-public/blob/main/4.png?raw=true" },
+      { id: "05", title: "Triangulation", desc: "Pinpoint 3D locations via triangulation from multi-view data.", image: "https://github.com/manmamixia01/Web-public/blob/main/5.png?raw=true" },
+      { id: "06", title: "Skeletal Map", desc: "Calculate full skeletal structure by integrating all joint data.", image: "https://github.com/manmamixia01/Web-public/blob/main/5.png?raw=true" },
+      { id: "07", title: "Range of Motion", desc: "Compute finger range of motion based on length and joints.", image: "https://github.com/manmamixia01/Web-public/blob/main/7.png?raw=true" },
+      { id: "08", title: "Data Generation", desc: "Generate final keyboard body geometry from kinematic data.", image: "https://github.com/manmamixia01/Web-public/blob/main/8.png?raw=true" },
+    ],
+    modelingTitle: "3D MODELING & SIMULATION",
+    backToHome: "BACK TO HOME",
+    status: "SYSTEM STATUS: ACTIVE"
+  },
+  jp: {
+    title: "Kinetic Fit",
+    subtitle: "- スマホに手をかざすだけでキーボード入力に革命を -",
+    introTitle: "研究概要",
+    introText: "手の運動学解析を通じたキーボード配列の最適化研究。個人の手の動きや解剖学的構造をキャプチャし、負担を最小限に抑え効率を最大化するカスタムエルゴノミクスデザインを自動生成します。",
+    workflowTitle: "開発プロセス",
+    steps: [
+      { id: "01", title: "True Depth カメラ取得", desc: "True Depth カメラを使用して深度情報を取得。", image: "https://github.com/manmamixia01/Web-public/blob/main/1.png?raw=true" },
+      { id: "02", title: "手の3Dデータ用意", desc: "手の3Dメッシュデータを作成し、解析の準備を行う。", image: "https://github.com/manmamixia01/Web-public/blob/main/2.png?raw=true" },
+      { id: "03", title: "多角撮影と位置保存", desc: "様々な角度からの写真とカメラの位置情報を保存。", image: "https://github.com/manmamixia01/Web-public/blob/main/3.png?raw=true" },
+      { id: "04", title: "関節位置の予測", desc: "MediaPipeを使用して各視点からの関節位置を解析。", image: "https://github.com/manmamixia01/Web-public/blob/main/4.png?raw=true" },
+      { id: "05", title: "三次元特定", desc: "カメラ情報をもとに関節の位置を三角測量で特定。", image: "https://github.com/manmamixia01/Web-public/blob/main/5.png?raw=true" },
+      { id: "06", title: "全関節の計算", desc: "すべての関節に対して実行し、手の構造を完全に復元。", image: "https://github.com/manmamixia01/Web-public/blob/main/5.png?raw=true" },
+      { id: "07", title: "可動範囲の計算", desc: "指の長さと付け根の位置から可動範囲を算出。", image: "https://github.com/manmamixia01/Web-public/blob/main/7.png?raw=true" },
+      { id: "08", title: "胴体データの生成", desc: "計算された可動域から最適なキーボード形状を生成。", image: "https://github.com/manmamixia01/Web-public/blob/main/8.png?raw=true" },
+    ],
+    modelingTitle: "3Dモデリング & シミュレーション",
+    backToHome: "トップページに戻る",
+    status: "SYSTEM STATUS: 正常稼働"
+  }
+};
+
+const KineticFitPage = ({ lang, onBack }: { lang: 'en' | 'jp', onBack: () => void }) => {
+  const t = kineticFitTranslations[lang];
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [loadedViewers, setLoadedViewers] = useState<Record<string, boolean>>({});
+
+  const viewers = [
+    { id: 'debug', src: 'debug_3d_view.html', label: 'SYSTEM_DEBUG_MODE' },
+    { id: 'main', src: '3d_view.html', label: 'SKELETAL_MODEL_LOADED' },
+    { id: 'reach', src: 'reach_3d_view.html', label: 'REACH_SIMULATION' },
+    { id: 'keyboard', src: 'keyboard_3d_view.html', label: 'KEYBOARD_DESIGN_WORKSPACE' }
+  ];
+
+  const handleViewerLoad = (id: string) => {
+    setLoadedViewers(prev => ({ ...prev, [id]: true }));
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-bg-dark pt-32 pb-20 px-6 font-sans overflow-x-hidden">
+      <div className="full-width-container">
+        {/* Navigation / Header */}
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-center gap-4 mb-20 group cursor-pointer"
+          onClick={onBack}
+        >
+          <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-500">
+            <ArrowLeft size={18} />
+          </div>
+          <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 group-hover:text-white transition-colors">{t.backToHome}</span>
+        </motion.div>
+
+        {/* Hero Section */}
+        <div className="mb-32 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.215, 0.61, 0.355, 1] }}
+          >
+            <div className="flex items-baseline gap-6 mb-4">
+               <span className="text-4xl md:text-8xl font-bold font-display tracking-tighter text-white opacity-20">03</span>
+               <span className="text-xl md:text-2xl font-bold tracking-widest text-white/60">開発内容</span>
+            </div>
+            <h1 className="text-[18vw] md:text-[15rem] font-bold font-display leading-[0.8] tracking-tighter uppercase mb-8">
+              {t.title}
+            </h1>
+            <p className="text-xs md:text-xl font-medium tracking-wide text-white/60">
+              {t.subtitle}
+            </p>
+          </motion.div>
+          
+          {/* Decorative Grid */}
+          <div className="absolute top-0 right-0 -z-10 w-full h-full opacity-10 pointer-events-none">
+            <div className="w-full h-full border-r border-white/20" />
+            <div className="absolute bottom-0 w-full h-[1px] bg-white/20" />
+          </div>
+        </div>
+
+        {/* Overview Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-20 mb-40 border-t border-white/10 pt-20">
+          <div>
+            <h2 className="text-sm font-bold tracking-[0.4em] text-white/30 uppercase mb-8">{t.introTitle}</h2>
+            <div className="text-2xl md:text-4xl text-white/80 leading-tight tracking-tight">
+              <LineFadeInText text={t.introText} />
+            </div>
+          </div>
+          <div className="flex flex-col justify-end">
+            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-sm">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-2 h-2 bg-brand-orange animate-pulse rounded-full" />
+                <span className="text-[10px] font-bold tracking-[0.2em]">{t.status}</span>
+              </div>
+              <p className="text-[10px] text-white/30 leading-relaxed uppercase tracking-widest">
+                Data input source: iOS ARKit / MediaPipe API v4.2<br />
+                Processing core: Local Compute Engine Alpha<br />
+                Model Version: Kinematic_Skeletal_v1.0.3
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Workflow Section */}
+        <div className="mb-40">
+          <div className="flex items-baseline gap-6 mb-16">
+            <span className="text-4xl md:text-8xl font-bold font-display tracking-tighter text-white opacity-20">08</span>
+            <h2 className="text-4xl md:text-6xl font-bold font-display tracking-tighter uppercase">{t.workflowTitle}</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-y-12 md:gap-x-4">
+            {t.steps.map((step: any, i: number) => (
+              <div key={step.id} className="relative">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="p-6 border border-white/5 hover:border-white/20 hover:bg-white/[0.01] transition-all duration-500 group relative overflow-hidden flex flex-col gap-6"
+                >
+                  <div className="flex justify-between items-start">
+                    <span className="text-4xl font-bold font-display text-white/10 group-hover:text-white/20 transition-colors duration-500">{step.id}</span>
+                    <Box className="text-white/5 group-hover:text-white/20 transition-colors" size={20} />
+                  </div>
+                  
+                  <div className="aspect-video w-full overflow-hidden rounded-sm bg-black/40 border border-white/5">
+                    <img 
+                      src={step.image} 
+                      alt={step.title} 
+                      className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-bold mb-2 tracking-tight group-hover:translate-x-1 transition-transform duration-500">{step.title}</h3>
+                    <p className="text-[10px] text-white/40 leading-relaxed min-h-[3em]">{step.desc}</p>
+                  </div>
+                </motion.div>
+
+                {/* Arrow indicator for flow */}
+                {i < t.steps.length - 1 && (
+                  <div className={`hidden md:flex absolute ${i === 3 ? 'hidden' : '-right-6'} top-1/2 -translate-y-1/2 z-10 text-brand-orange/40 hover:text-brand-orange transition-colors`}>
+                    <MoveRight size={24} className="animate-pulse" />
+                  </div>
+                )}
+                {/* Mobile arrows */}
+                {i < t.steps.length - 1 && (
+                  <div className="md:hidden flex justify-center py-4 text-brand-orange/40">
+                    <ChevronDown size={24} className="animate-pulse" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 3D Modeling Section Stacked Viewers */}
+        <div className="mb-40 border-t border-white/10 pt-20">
+           <div className="flex justify-between items-end mb-16">
+              <h2 className="text-4xl md:text-6xl font-bold font-display tracking-tighter uppercase leading-[0.8]">
+                {t.modelingTitle}
+              </h2>
+              <Box className="text-white/20" size={48} />
+           </div>
+
+           <div className="flex flex-col gap-20">
+             {viewers.map((v) => (
+                <div key={v.id} className="aspect-video w-full border border-white/5 bg-black rounded-sm relative overflow-hidden group">
+                  {!loadedViewers[v.id] && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black">
+                      <div className="w-12 h-12 border-2 border-white/10 border-t-white/60 rounded-full animate-spin mb-4" />
+                      <span className="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase">
+                        Initiating_{v.id}_Protocol...
+                      </span>
+                    </div>
+                  )}
+                  <iframe 
+                    src={v.src} 
+                    className={`w-full h-full border-none transition-opacity duration-1000 ${loadedViewers[v.id] ? 'opacity-100' : 'opacity-0'}`}
+                    title={v.label}
+                    onLoad={() => handleViewerLoad(v.id)}
+                    style={{ background: 'black' }}
+                  />
+
+                  <div className="absolute top-8 left-8 p-4 bg-black/40 backdrop-blur-md border border-white/10 rounded-sm pointer-events-none">
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-white/60 uppercase">Kinetic_Fit_System v1.0.3_</span>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className={`w-1 h-1 rounded-full ${loadedViewers[v.id] ? 'bg-brand-orange' : 'bg-white/20 animate-pulse'}`} />
+                      <span className="text-[8px] tracking-widest text-white/40 line-clamp-1 truncate uppercase">
+                        {v.label} / {loadedViewers[v.id] ? 'ACTIVE' : 'LOADING'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="absolute bottom-8 right-8 flex flex-col items-end gap-2 text-[8px] font-mono tracking-widest text-white/20 text-right uppercase pointer-events-none">
+                    <p>Format: VTK_XML</p>
+                    <p>Module: {v.id.toUpperCase()}_VIEW</p>
+                    <p>Interaction: BIND_SUCCESS</p>
+                  </div>
+                </div>
+             ))}
+           </div>
+        </div>
+
+        {/* Closing Footer Area */}
+        <div className="pt-20 border-t border-white/10 text-center">
+           <button 
+            onClick={onBack}
+            className="group flex flex-col items-center gap-6 mx-auto"
+           >
+              <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-700 ease-expo">
+                 <ArrowLeft size={32} />
+              </div>
+              <div>
+                <span className="text-xs font-bold tracking-[0.5em] text-white/40 group-hover:text-white transition-colors uppercase">{t.backToHome}</span>
+                <div className="h-[1px] w-0 group-hover:w-full bg-white/30 mx-auto mt-2 transition-all duration-500" />
+              </div>
+           </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -891,6 +1149,7 @@ export default function App() {
   const [lang, setLang] = useState<'en' | 'jp'>('en');
   const [isLoading, setIsLoading] = useState(true);
   const [showContent, setShowContent] = useState(false);
+  const [currentPage, setCurrentPage] = useState<'home' | 'kinetic-fit'>('home');
 
   useEffect(() => {
     if (isLoading) {
@@ -905,7 +1164,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isLoading && (
           <LoadingScreen 
             onComplete={() => {
@@ -918,34 +1177,54 @@ export default function App() {
       
       <CustomCursor />
       <Navbar lang={lang} setLang={setLang} />
-      <main>
-        <Hero lang={lang} show={showContent} />
-        <GridSection lang={lang} />
-        <Arsenal1Section lang={lang} />
-        <NewsSection lang={lang} />
-        <RebootingRebuildSection lang={lang} />
-        
-        {/* CTA Section */}
-        <section className="py-32 px-6 text-center border-t border-white/10">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl md:text-7xl font-bold font-display tracking-tighter mb-8 uppercase">
-              {translations[lang].cta.title}
-            </h2>
-            <div className="text-xl text-white/50 mb-12 max-w-2xl mx-auto min-h-[3em]">
-              <LineFadeInText text={translations[lang].cta.description} />
-            </div>
-            <div className="flex flex-wrap justify-center gap-6">
-              <button className="bg-white text-black px-10 py-5 font-bold text-lg hover:bg-white/90 transition-colors magnetic">
-                {translations[lang].cta.getInTouch}
-              </button>
-              <a href="https://x.com/Aki_H2008" target="_blank" rel="noopener noreferrer" className="border border-white/20 px-10 py-5 font-bold text-lg hover:bg-white/10 transition-colors magnetic inline-block">
-                {translations[lang].cta.followX}
-              </a>
-            </div>
-          </div>
-        </section>
-      </main>
-      <Footer lang={lang} />
+      
+      <AnimatePresence mode="wait">
+        {currentPage === 'home' ? (
+          <motion.main
+            key="home"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Hero lang={lang} show={showContent} />
+            <GridSection lang={lang} />
+            <Arsenal1Section lang={lang} />
+            <NewsSection lang={lang} />
+            <RebootingRebuildSection lang={lang} onOpenKineticFit={() => setCurrentPage('kinetic-fit')} />
+            
+            {/* CTA Section */}
+            <section className="py-32 px-6 text-center border-t border-white/10">
+              <div className="max-w-4xl mx-auto">
+                <h2 className="text-4xl md:text-7xl font-bold font-display tracking-tighter mb-8 uppercase">
+                  {translations[lang].cta.title}
+                </h2>
+                <div className="text-xl text-white/50 mb-12 max-w-2xl mx-auto min-h-[3em]">
+                  <LineFadeInText text={translations[lang].cta.description} />
+                </div>
+                <div className="flex flex-wrap justify-center gap-6">
+                  <button className="bg-white text-black px-10 py-5 font-bold text-lg hover:bg-white/90 transition-colors magnetic">
+                    {translations[lang].cta.getInTouch}
+                  </button>
+                  <a href="https://x.com/Aki_H2008" target="_blank" rel="noopener noreferrer" className="border border-white/20 px-10 py-5 font-bold text-lg hover:bg-white/10 transition-colors magnetic inline-block">
+                    {translations[lang].cta.followX}
+                  </a>
+                </div>
+              </div>
+            </section>
+            <Footer lang={lang} />
+          </motion.main>
+        ) : (
+          <motion.div
+            key="kinetic-fit"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <KineticFitPage lang={lang} onBack={() => setCurrentPage('home')} />
+            <Footer lang={lang} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
