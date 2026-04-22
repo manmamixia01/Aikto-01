@@ -685,39 +685,59 @@ const Arsenal1Section = ({ lang }: { lang: 'en' | 'jp' }) => {
 
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-4xl font-bold font-display tracking-tighter uppercase">BEDROCK SPACE</h2>
-        <a href="#" className="flex items-center gap-2 text-xs font-bold tracking-widest text-white/50 hover:text-white transition-colors magnetic">
+        <a 
+          href="https://bedrock-space.com/ja/" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="flex items-center gap-2 text-xs font-bold tracking-widest text-white/50 hover:text-white transition-colors magnetic"
+        >
           {t.showMore} <ArrowUpRight size={14} />
         </a>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 aspect-auto md:aspect-[21/9] w-full mb-12">
-        <div className="relative overflow-hidden rounded-sm group h-[300px] md:h-full">
+        <a 
+          href="https://bedrock-space.com/ja/" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="relative overflow-hidden rounded-sm group h-[300px] md:h-full block"
+        >
           <img 
             src="https://github.com/manmamixia01/Web-public/blob/main/A1_04043_1%20(%E4%B8%AD).jpg?raw=true" 
             alt="Project 1" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-black/20" />
-        </div>
-        <div className="relative overflow-hidden rounded-sm group h-[300px] md:h-full">
+          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+        </a>
+        <a 
+          href="https://bedrock-space.com/ja/" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="relative overflow-hidden rounded-sm group h-[300px] md:h-full block"
+        >
           <img 
             src="https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&q=80&w=1000" 
             alt="Project 2" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-black/20" />
-        </div>
-        <div className="relative overflow-hidden rounded-sm group h-[300px] md:h-full">
+          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+        </a>
+        <a 
+          href="https://bedrock-space.com/ja/" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="relative overflow-hidden rounded-sm group h-[300px] md:h-full block"
+        >
           <img 
             src="https://github.com/manmamixia01/Web-public/blob/main/hygine.jpg?raw=true" 
             alt="Project 3" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-black/20" />
-        </div>
+          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+        </a>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -742,7 +762,12 @@ const NewsSection = ({ lang }: { lang: 'en' | 'jp' }) => {
     <section className="py-24 full-width-container bg-[#0a0a0a] border-t border-white/10">
       <div className="flex justify-between items-center mb-16">
         <h2 className="text-4xl font-bold font-display tracking-tighter uppercase">{t.title}</h2>
-        <a href="#" className="flex items-center gap-2 text-xs font-bold tracking-widest text-white/50 hover:text-white transition-colors magnetic">
+        <a 
+          href="https://www.soarahpa.com/" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="flex items-center gap-2 text-xs font-bold tracking-widest text-white/50 hover:text-white transition-colors magnetic"
+        >
           {t.allArticles} <ArrowUpRight size={14} />
         </a>
       </div>
@@ -750,9 +775,16 @@ const NewsSection = ({ lang }: { lang: 'en' | 'jp' }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
         <div className="flex flex-col justify-center">
           <p className="text-xs font-bold tracking-widest text-white/30 mb-4">7/26/2026</p>
-          <h3 className="text-3xl md:text-4xl font-bold font-display leading-tight mb-6 hover:text-white/80 transition-colors">
-            {t.soaraTitle}
-          </h3>
+          <a 
+            href="https://www.soarahpa.com/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block"
+          >
+            <h3 className="text-3xl md:text-4xl font-bold font-display leading-tight mb-6 hover:text-white/80 transition-colors">
+              {t.soaraTitle}
+            </h3>
+          </a>
           <div className="text-white/50 mb-8 max-w-md">
             <LineFadeInText text={t.soaraDesc} />
           </div>
@@ -764,14 +796,19 @@ const NewsSection = ({ lang }: { lang: 'en' | 'jp' }) => {
             </div>
           )}
         </div>
-        <div className="aspect-video overflow-hidden rounded-sm">
+        <a 
+          href="https://www.soarahpa.com/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="aspect-video overflow-hidden rounded-sm group block"
+        >
           <img 
             src="https://github.com/manmamixia01/Web-public/blob/main/birdman%20(%E4%B8%AD).jpg?raw=true" 
             alt="YFQ-44A" 
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             referrerPolicy="no-referrer"
           />
-        </div>
+        </a>
       </div>
     </section>
   );
