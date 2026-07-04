@@ -41,7 +41,9 @@
 }
 
 .bento-card {
-  @apply relative overflow-hidden rounded-sm border border-border-subtle bg-card-bg transition-all duration-500 hover:border-white/30;
+  /* NOTE: transition-colors, NOT transition-all — transition-all would fight
+     framer-motion's transform/opacity animation (fade first, slide later bug) */
+  @apply relative overflow-hidden rounded-sm border border-border-subtle bg-card-bg transition-colors duration-500 hover:border-white/30;
 }
 
 .gradient-overlay {

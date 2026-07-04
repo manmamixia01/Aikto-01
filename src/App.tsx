@@ -2,6 +2,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
+// hero: staggered slide-up on splash end
 
 import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValue, animate } from "motion/react";
 import { 
@@ -99,21 +100,37 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   );
 };
 
-const LineFadeInText = ({ text, className = "" }: { text: string, className?: string }) => {
+// Shared scroll-reveal wrapper: slide up + fade in when scrolled into view
+const Reveal = ({ children, className = "", delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 48 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.2, margin: "0px 0px -80px 0px" }}
+    transition={{ duration: 0.9, delay, ease: [0.215, 0.61, 0.355, 1] }}
+    className={className}
+  >
+    {children}
+  </motion.div>
+);
+
+// If `show` is provided, lines animate when show becomes true (splash-end stagger).
+// Otherwise they animate when scrolled into view.
+const LineFadeInText = ({ text, className = "", show, delay = 0 }: { text: string, className?: string, show?: boolean, delay?: number }) => {
   const lines = useMemo(() => text.split("\n"), [text]);
-  
+  const gated = show !== undefined;
+
   return (
     <div className={className}>
       {lines.map((line, i) => (
         <div key={i} className="overflow-hidden">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            style={{ opacity: 0 }}
+            initial={{ opacity: 0, y: 14 }}
+            {...(gated
+              ? { animate: show ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 } }
+              : { whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.2 } })}
             transition={{
               duration: 0.8,
-              delay: i * 0.05,
+              delay: delay + i * 0.07,
               ease: [0.215, 0.61, 0.355, 1]
             }}
           >
@@ -384,6 +401,8 @@ const CustomCursor = () => {
       const magneticElements = document.querySelectorAll("a:not(.no-magnetic), .magnetic, button:not(.no-magnetic), .cursor-pointer:not(.no-magnetic)");
       magneticElements.forEach((el) => {
         const element = el as HTMLElement;
+        // Skip photos: no magnetic effect on images or elements containing images
+        if (element.tagName === "IMG" || element.querySelector("img")) return;
         if (element.dataset.magneticInit) return;
         element.dataset.magneticInit = "true";
         
@@ -555,9 +574,8 @@ const Hero = ({ lang, show }: { lang: 'en' | 'jp', show: boolean }) => {
       <div className="absolute inset-0 z-0">
         <motion.img 
           initial={{ opacity: 0 }}
-          animate={show ? { opacity: 0.4 } : {}}
+          animate={show ? { opacity: 0.4 } : { opacity: 0 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          style={{ opacity: 0 }}
           src="https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&q=80&w=2000" 
           alt="Background" 
           className="w-full h-full object-cover"
@@ -568,10 +586,9 @@ const Hero = ({ lang, show }: { lang: 'en' | 'jp', show: boolean }) => {
 
       <div className="relative z-10 full-width-container w-full flex flex-col md:flex-row items-start justify-between gap-8 md:gap-12 pb-20 md:pb-0">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={show ? { opacity: 1, y: 0 } : {}}
+          initial={{ opacity: 0, y: 24 }}
+          animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
           transition={{ duration: 1, ease: [0.215, 0.61, 0.355, 1] }}
-          style={{ opacity: 0 }}
           className="flex-1 text-left relative z-10"
         >
           <div className="relative w-full">
@@ -579,12 +596,11 @@ const Hero = ({ lang, show }: { lang: 'en' | 'jp', show: boolean }) => {
             <div className="md:hidden w-full">
               <div className="flex items-end w-full mb-4">
                 <span className="text-6xl font-bold font-display leading-none tracking-tighter uppercase">AKITO</span>
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={show ? { opacity: 1 } : {}}
-                  transition={{ duration: 1.5, delay: 0.3, ease: [0.215, 0.61, 0.355, 1] }}
-                  style={{ opacity: 0 }}
-                  className="flex-1 ml-4 aspect-square rounded-sm overflow-hidden border border-white/10 transition-all duration-1000"
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+                  transition={{ duration: 1, delay: 0.15, ease: [0.215, 0.61, 0.355, 1] }}
+                  className="flex-1 ml-4 aspect-square rounded-sm overflow-hidden border border-white/10"
                 >
                   <img 
                     src="https://github.com/manmamixia01/Web-public/blob/main/IMG_9622%20(%E4%B8%AD).JPG?raw=true" 
@@ -596,7 +612,12 @@ const Hero = ({ lang, show }: { lang: 'en' | 'jp', show: boolean }) => {
               </div>
               <h1 className="text-6xl font-bold font-display leading-[0.8] tracking-tighter mb-6 uppercase">
                 HATTORI <br />
-                <span className="text-white/20 text-lg block mt-4 font-sans tracking-widest">服部明人</span>
+                <motion.span
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+                  transition={{ duration: 0.9, delay: 0.25, ease: [0.215, 0.61, 0.355, 1] }}
+                  className="text-white/20 text-lg block mt-4 font-sans tracking-widest"
+                >服部明人</motion.span>
               </h1>
             </div>
 
@@ -604,17 +625,22 @@ const Hero = ({ lang, show }: { lang: 'en' | 'jp', show: boolean }) => {
             <h1 className="hidden md:block text-[12rem] font-bold font-display leading-[0.8] tracking-tighter mb-8 max-w-4xl uppercase">
               AKITO <br />
               HATTORI <br />
-              <span className="text-white/20 text-2xl block mt-6 font-sans tracking-widest">服部明人</span>
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                transition={{ duration: 0.9, delay: 0.25, ease: [0.215, 0.61, 0.355, 1] }}
+                className="text-white/20 text-2xl block mt-6 font-sans tracking-widest"
+              >服部明人</motion.span>
             </h1>
           </div>
 
           <div className="text-sm md:text-xl text-white/60 max-w-xl mb-8 md:mb-10 leading-relaxed text-left min-h-[3em]">
-            <LineFadeInText text={t.description} />
+            <LineFadeInText text={t.description} show={show} delay={0.35} />
           </div>
           <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={show ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.5 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.8, delay: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
             className="flex flex-wrap justify-start gap-3 md:gap-4"
           >
             <AnimatedButton onClick={() => {}} className="flex items-center gap-2">
@@ -627,12 +653,11 @@ const Hero = ({ lang, show }: { lang: 'en' | 'jp', show: boolean }) => {
         </motion.div>
 
         {/* Desktop Portrait */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={show ? { opacity: 1, scale: 1 } : {}}
-          transition={{ duration: 1.5, delay: 0.2, ease: [0.215, 0.61, 0.355, 1] }}
-          style={{ opacity: 0 }}
-          className="relative hidden md:block w-[450px] aspect-[3/4] overflow-hidden rounded-sm transition-all duration-700 border border-white/10 self-start md:self-auto"
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          transition={{ duration: 1.1, delay: 0.15, ease: [0.215, 0.61, 0.355, 1] }}
+          className="relative hidden md:block w-[450px] aspect-[3/4] overflow-hidden rounded-sm border border-white/10 self-start md:self-auto"
         >
           <img 
             src="https://github.com/manmamixia01/Web-public/blob/main/IMG_9622%20(%E4%B8%AD).JPG?raw=true" 
@@ -645,10 +670,9 @@ const Hero = ({ lang, show }: { lang: 'en' | 'jp', show: boolean }) => {
       </div>
 
       <motion.div 
-        initial={{ opacity: 0 }}
-        animate={show ? { opacity: 1 } : {}}
+        initial={{ opacity: 0, y: 12 }}
+        animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
         transition={{ duration: 1, delay: 1.5 }}
-        style={{ opacity: 0 }}
         className="absolute bottom-4 left-0 right-0 z-10 flex flex-col items-center gap-1 md:bottom-10"
       >
         <p className="text-[10px] md:text-xs font-bold tracking-[0.2em] text-white/40 uppercase">{t.scroll}</p>
@@ -666,10 +690,10 @@ const Hero = ({ lang, show }: { lang: 'en' | 'jp', show: boolean }) => {
 const ProductCard = ({ title, category, image, size = "small" }: { title: string, category: string, image: string, size?: "small" | "large" | "wide" }) => {
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 48 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      style={{ opacity: 0 }}
+      viewport={{ once: true, amount: 0.2, margin: "0px 0px -80px 0px" }}
+      transition={{ duration: 0.9, ease: [0.215, 0.61, 0.355, 1] }}
       className={`bento-card group ${size === "large" ? "md:col-span-2 md:row-span-2" : size === "wide" ? "md:col-span-2" : ""}`}
     >
       <img 
@@ -694,7 +718,7 @@ const GridSection = ({ lang }: { lang: 'en' | 'jp' }) => {
   const t = translations[lang].skills;
   return (
     <section id="skills" className="py-24 full-width-container">
-      <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+      <Reveal className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
         <div className="max-w-2xl">
           <h2 className="text-4xl md:text-6xl font-bold font-display tracking-tighter mb-6 uppercase">
             {t.title}
@@ -706,7 +730,7 @@ const GridSection = ({ lang }: { lang: 'en' | 'jp' }) => {
         <a href="#" className="flex items-center gap-2 font-bold text-sm tracking-widest hover:text-white/70 transition-colors magnetic">
           {t.viewAll} <ArrowRight size={16} />
         </a>
-      </div>
+      </Reveal>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[300px] md:auto-rows-[400px]">
         <ProductCard 
@@ -745,7 +769,7 @@ const Arsenal1Section = ({ lang }: { lang: 'en' | 'jp' }) => {
   const t = translations[lang].projects;
   return (
     <section id="works" className="py-24 full-width-container bg-[#111] border-t border-white/10">
-      <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+      <Reveal className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
         <div className="max-w-2xl">
           <h2 className="text-4xl md:text-6xl font-bold font-display tracking-tighter mb-6 uppercase">
             {t.title}
@@ -757,9 +781,9 @@ const Arsenal1Section = ({ lang }: { lang: 'en' | 'jp' }) => {
         <a href="#" className="flex items-center gap-2 font-bold text-sm tracking-widest hover:text-white/70 transition-colors magnetic">
           {t.viewAll} <ArrowRight size={16} />
         </a>
-      </div>
+      </Reveal>
 
-      <div className="flex justify-between items-center mb-8">
+      <Reveal className="flex justify-between items-center mb-8">
         <h2 className="text-4xl font-bold font-display tracking-tighter uppercase">BEDROCK SPACE</h2>
         <a 
           href="https://bedrock-space.com/ja/" 
@@ -769,54 +793,34 @@ const Arsenal1Section = ({ lang }: { lang: 'en' | 'jp' }) => {
         >
           {t.showMore} <ArrowUpRight size={14} />
         </a>
-      </div>
-      
+      </Reveal>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 aspect-auto md:aspect-[21/9] w-full mb-12">
-        <a 
-          href="https://bedrock-space.com/ja/" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="relative overflow-hidden rounded-sm group h-[300px] md:h-full block"
-        >
-          <img 
-            src="https://github.com/manmamixia01/Web-public/blob/main/A1_04043_1%20(%E4%B8%AD).jpg?raw=true" 
-            alt="Project 1" 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
-        </a>
-        <a 
-          href="https://bedrock-space.com/ja/" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="relative overflow-hidden rounded-sm group h-[300px] md:h-full block"
-        >
-          <img 
-            src="https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&q=80&w=1000" 
-            alt="Project 2" 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
-        </a>
-        <a 
-          href="https://bedrock-space.com/ja/" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="relative overflow-hidden rounded-sm group h-[300px] md:h-full block"
-        >
-          <img 
-            src="https://github.com/manmamixia01/Web-public/blob/main/hygine.jpg?raw=true" 
-            alt="Project 3" 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
-        </a>
+        {[
+          "https://github.com/manmamixia01/Web-public/blob/main/A1_04043_1%20(%E4%B8%AD).jpg?raw=true",
+          "https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&q=80&w=1000",
+          "https://github.com/manmamixia01/Web-public/blob/main/hygine.jpg?raw=true"
+        ].map((src, i) => (
+          <Reveal key={src} delay={i * 0.12} className="h-[300px] md:h-full">
+            <a
+              href="https://bedrock-space.com/ja/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative overflow-hidden rounded-sm group h-full block"
+            >
+              <img
+                src={src}
+                alt={`Project ${i + 1}`}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+            </a>
+          </Reveal>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <Reveal className="grid grid-cols-1 md:grid-cols-2 gap-12">
         <div>
           <p className="text-[10px] font-bold tracking-[0.3em] text-white/30 uppercase mb-2">{t.bedrockDesc1}</p>
           <p className="text-[10px] font-bold tracking-[0.3em] text-white/30 uppercase">{t.bedrockDesc2}</p>
@@ -827,7 +831,7 @@ const Arsenal1Section = ({ lang }: { lang: 'en' | 'jp' }) => {
             {t.bedrockText}
           </p>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 };
@@ -836,7 +840,7 @@ const NewsSection = ({ lang }: { lang: 'en' | 'jp' }) => {
   const t = translations[lang].news;
   return (
     <section id="careers" className="py-24 full-width-container bg-[#0a0a0a] border-t border-white/10">
-      <div className="flex justify-between items-center mb-16">
+      <Reveal className="flex justify-between items-center mb-16">
         <h2 className="text-4xl font-bold font-display tracking-tighter uppercase">{t.title}</h2>
         <a 
           href="https://www.soarahpa.com/" 
@@ -846,10 +850,10 @@ const NewsSection = ({ lang }: { lang: 'en' | 'jp' }) => {
         >
           {t.allArticles} <ArrowUpRight size={14} />
         </a>
-      </div>
+      </Reveal>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-        <div className="flex flex-col justify-center">
+        <Reveal className="flex flex-col justify-center">
           <p className="text-xs font-bold tracking-widest text-white/30 mb-4">7/26/2026</p>
           <a 
             href="https://www.soarahpa.com/" 
@@ -871,20 +875,22 @@ const NewsSection = ({ lang }: { lang: 'en' | 'jp' }) => {
               </a>
             </div>
           )}
-        </div>
-        <a 
-          href="https://www.soarahpa.com/" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="aspect-video overflow-hidden rounded-sm group block"
-        >
-          <img 
-            src="https://github.com/manmamixia01/Web-public/blob/main/birdman%20(%E4%B8%AD).jpg?raw=true" 
-            alt="YFQ-44A" 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            referrerPolicy="no-referrer"
-          />
-        </a>
+        </Reveal>
+        <Reveal delay={0.15}>
+          <a
+            href="https://www.soarahpa.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="aspect-video overflow-hidden rounded-sm group block"
+          >
+            <img
+              src="https://github.com/manmamixia01/Web-public/blob/main/birdman%20(%E4%B8%AD).jpg?raw=true"
+              alt="YFQ-44A"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              referrerPolicy="no-referrer"
+            />
+          </a>
+        </Reveal>
       </div>
     </section>
   );
@@ -896,7 +902,12 @@ const RebootingRebuildSection = ({ lang }: { lang: 'en' | 'jp' }) => {
   return (
     <section className="grid grid-cols-1 md:grid-cols-2">
       {/* Rebooting The Arsenal */}
-      <div className="relative aspect-square md:aspect-auto md:h-[800px] overflow-hidden group border-r border-white/10">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2, margin: "0px 0px -80px 0px" }}
+        transition={{ duration: 0.9, ease: [0.215, 0.61, 0.355, 1] }}
+        className="relative aspect-square md:aspect-auto md:h-[800px] overflow-hidden group border-r border-white/10">
         <img 
           src="https://github.com/manmamixia01/Web-public/blob/main/guiness2019.jpg?raw=true" 
           alt="Rebooting The Arsenal" 
@@ -915,10 +926,14 @@ const RebootingRebuildSection = ({ lang }: { lang: 'en' | 'jp' }) => {
             LG — 2019
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Rebuild The Arsenal - Links to Kinetic Fit */}
-      <div 
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2, margin: "0px 0px -80px 0px" }}
+        transition={{ duration: 0.9, delay: 0.1, ease: [0.215, 0.61, 0.355, 1] }}
         onClick={() => navigate('/KineticFit')}
         className="relative aspect-square md:aspect-auto md:h-[800px] overflow-hidden group cursor-pointer border-l border-white/10 no-magnetic"
         role="button"
@@ -942,7 +957,7 @@ const RebootingRebuildSection = ({ lang }: { lang: 'en' | 'jp' }) => {
             Ac — 2025
           </p>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };
@@ -1043,7 +1058,7 @@ const KineticFitPage = ({ lang }: { lang: 'en' | 'jp' }) => {
         </div>
 
         {/* Overview Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-20 mb-40 border-t border-white/10 pt-20">
+        <Reveal className="grid grid-cols-1 md:grid-cols-2 gap-20 mb-40 border-t border-white/10 pt-20">
           <div>
             <h2 className="text-sm font-bold tracking-[0.4em] text-white/30 uppercase mb-8">{t.introTitle}</h2>
             <div className="text-2xl md:text-4xl text-white/80 leading-tight tracking-tight">
@@ -1063,24 +1078,24 @@ const KineticFitPage = ({ lang }: { lang: 'en' | 'jp' }) => {
               </p>
             </div>
           </div>
-        </div>
+        </Reveal>
 
         {/* Workflow Section */}
         <div className="mb-40">
-          <div className="flex items-baseline gap-6 mb-16">
+          <Reveal className="flex items-baseline gap-6 mb-16">
             <span className="text-4xl md:text-8xl font-bold font-display tracking-tighter text-white opacity-20">08</span>
             <h2 className="text-4xl md:text-6xl font-bold font-display tracking-tighter uppercase">{t.workflowTitle}</h2>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-y-12 md:gap-x-4">
             {t.steps.map((step: any, i: number) => (
               <div key={step.id} className="relative">
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="p-6 border border-white/5 hover:border-white/20 hover:bg-white/[0.01] transition-all duration-500 group relative overflow-hidden flex flex-col gap-6"
+                  viewport={{ once: true, amount: 0.2, margin: "0px 0px -80px 0px" }}
+                  transition={{ duration: 0.7, delay: i * 0.1, ease: [0.215, 0.61, 0.355, 1] }}
+                  className="p-6 border border-white/5 hover:border-white/20 hover:bg-white/[0.01] transition-colors duration-500 group relative overflow-hidden flex flex-col gap-6"
                 >
                   <div className="flex justify-between items-start">
                     <span className="text-4xl font-bold font-display text-white/10 group-hover:text-white/20 transition-colors duration-500">{step.id}</span>
@@ -1143,7 +1158,7 @@ const Footer = ({ lang }: { lang: 'en' | 'jp' }) => {
   const t = translations[lang].footer;
   return (
     <footer className="bg-bg-dark border-t border-white/10 py-12 md:py-20 px-6 min-h-screen md:min-h-0 flex flex-col justify-center">
-      <div className="full-width-container">
+      <Reveal className="full-width-container">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-12 md:mb-20">
           <div className="col-span-1 md:col-span-2">
             <h2 className="text-2xl md:text-3xl font-bold font-display tracking-tighter mb-4 md:mb-6 uppercase">AKITO</h2>
@@ -1196,7 +1211,7 @@ const Footer = ({ lang }: { lang: 'en' | 'jp' }) => {
             <a href="#" className="hover:text-white transition-colors magnetic uppercase">Supply</a>
           </div>
         </div>
-      </div>
+      </Reveal>
     </footer>
   );
 };
@@ -1234,7 +1249,9 @@ function AppContent({
       <CustomCursor />
       <Navbar lang={lang} setLang={setLang} />
       
-      <AnimatePresence mode="wait" initial={false}>
+      {/* NOTE: initial={false} would disable ALL initial animations in the subtree
+          (including whileInView scroll reveals), so it must not be set here. */}
+      <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={
             <motion.main
@@ -1251,7 +1268,7 @@ function AppContent({
               
               {/* CTA Section */}
               <section className="py-32 px-6 text-center border-t border-white/10">
-                <div className="max-w-4xl mx-auto">
+                <Reveal className="max-w-4xl mx-auto">
                   <h2 className="text-4xl md:text-7xl font-bold font-display tracking-tighter mb-8 uppercase">
                     {translations[lang].cta.title}
                   </h2>
@@ -1266,7 +1283,7 @@ function AppContent({
                       {translations[lang].cta.followX}
                     </a>
                   </div>
-                </div>
+                </Reveal>
               </section>
               <Footer lang={lang} />
             </motion.main>
