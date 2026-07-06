@@ -35,16 +35,18 @@ export default async function handler(req, res) {
 
   let country = "Unknown";
   let region = "Unknown";
+  let city = "Unknown";
 
   // Same lookup approach as the adress project: ip-api.com/json/{ip}.
   // The raw IP is only used transiently for this lookup and is not sent to Discord.
   if (isPublicIp(ip)) {
     try {
-      const geoResponse = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,regionName`);
+      const geoResponse = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,regionName,city`);
       const geo = await geoResponse.json();
       if (geo.status === "success") {
         country = sanitize(geo.country, "Unknown");
         region = sanitize(geo.regionName, "Unknown");
+        city = sanitize(geo.city, "Unknown");
       }
     } catch (error) {
       console.error("Geo lookup failed:", error.message);
@@ -62,6 +64,7 @@ export default async function handler(req, res) {
     `Page: ${page}`,
     `Country: ${country}`,
     `Region: ${region}`,
+    `City: ${city}`,
     `Time: ${accessedAt}`
   ].join("\n");
 
