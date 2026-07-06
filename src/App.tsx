@@ -237,13 +237,13 @@ const translations = {
       bedrockDesc1: "BUILD A FLOURISHING",
       bedrockDesc2: "CIVILIZATION IN SPACE.",
       bedrockRole: "Hardware engineer",
-      bedrockText: "平均年齢19歳。志の高い宇宙系スタートアップ企業"
+      bedrockText: "平均年齢19歳。志の高い宇宙系スタートアップ企業。"
     },
     news: {
       title: "SOARA",
       allArticles: "ALL ARTICLES",
-      soaraTitle: "史上初の高校生チームとして鳥人間コンテストの出場を目指す有志団体で制御システムを開発",
-      soaraDesc: "史上初の高校生チームとして鳥人間コンテストの出場を目指す有志団体で、機体の制御システム開発を担当。",
+      soaraTitle: "鳥人間コンテストへの挑戦。",
+      soaraDesc: "史上初の高校生チームとして鳥人間コンテスト出場を目指す有志団体で、機体の制御システム開発を担当。",
       readMore: "READ MORE"
     },
     reboot: {
@@ -258,7 +258,7 @@ const translations = {
       followX: "FOLLOW ON X"
     },
     footer: {
-      desc: "テクノロジー、デザイン、社会を掛け合わせ、ゼロから仕組みを創り出す。システムレベル・クリエイター。",
+      desc: "テクノロジー、デザイン、社会を掛け合わせ、ゼロから仕組みを創り出すシステムレベル・クリエイター。",
       company: "Company",
       capabilities: "Capabilities",
       hardware: "Hardware Prototyping",
@@ -985,23 +985,23 @@ const kineticFitTranslations = {
   },
   jp: {
     title: "Kinetic Fit",
-    subtitle: "- スマホに手をかざすだけでキーボード入力に革命を -",
+    subtitle: "- スマートフォンに手をかざすだけでキーボード入力を最適化する -",
     introTitle: "研究概要",
-    introText: "手の運動学解析を通じたキーボード配列の最適化研究。個人の手の動きや解剖学的構造をキャプチャし、負担を最小限に抑え効率を最大化するカスタムエルゴノミクスデザインを自動生成します。",
+    introText: "手の運動解析を通じて、キーボード配列の最適化を研究しています。個人の手の動きと解剖学的な構造を捉え、負担を抑えながら効率を高めるカスタムエルゴノミクスデザインを生成します。",
     workflowTitle: "開発プロセス",
     steps: [
       { id: "01", title: "True Depth カメラ取得", desc: "True Depth カメラを使用して深度情報を取得。", image: "https://github.com/manmamixia01/Web-public/blob/main/1.png?raw=true" },
       { id: "02", title: "手の3Dデータ用意", desc: "手の3Dメッシュデータを作成し、解析の準備を行う。", image: "https://github.com/manmamixia01/Web-public/blob/main/2.png?raw=true" },
-      { id: "03", title: "多角撮影と位置保存", desc: "様々な角度からの写真とカメラの位置情報を保存。", image: "https://github.com/manmamixia01/Web-public/blob/main/3.png?raw=true" },
-      { id: "04", title: "関節位置の予測", desc: "MediaPipeを使用して各視点からの関節位置を解析。", image: "https://github.com/manmamixia01/Web-public/blob/main/4.png?raw=true" },
-      { id: "05", title: "三次元特定", desc: "カメラ情報をもとに関節の位置を三角測量で特定。", image: "https://github.com/manmamixia01/Web-public/blob/main/5.png?raw=true" },
-      { id: "06", title: "全関節の計算", desc: "すべての関節に対して実行し、手の構造を完全に復元。", image: "https://github.com/manmamixia01/Web-public/blob/main/6.png?raw=true" },
+      { id: "03", title: "多角度撮影と位置保存", desc: "さまざまな角度からの写真とカメラ位置情報を保存。", image: "https://github.com/manmamixia01/Web-public/blob/main/3.png?raw=true" },
+      { id: "04", title: "関節位置の予測", desc: "MediaPipeを使用して各視点から関節位置を解析。", image: "https://github.com/manmamixia01/Web-public/blob/main/4.png?raw=true" },
+      { id: "05", title: "三次元位置推定", desc: "カメラ情報をもとに関節位置を三角測量で特定。", image: "https://github.com/manmamixia01/Web-public/blob/main/5.png?raw=true" },
+      { id: "06", title: "全関節の計算", desc: "すべての関節に対して処理し、手の構造を復元。", image: "https://github.com/manmamixia01/Web-public/blob/main/6.png?raw=true" },
       { id: "07", title: "可動範囲の計算", desc: "指の長さと付け根の位置から可動範囲を算出。", image: "https://github.com/manmamixia01/Web-public/blob/main/7.png?raw=true" },
-      { id: "08", title: "胴体データの生成", desc: "計算された可動域から最適なキーボード形状を生成。", image: "https://github.com/manmamixia01/Web-public/blob/main/8.png?raw=true" },
+      { id: "08", title: "筐体データの生成", desc: "算出された可動域から最適なキーボード形状を生成。", image: "https://github.com/manmamixia01/Web-public/blob/main/8.png?raw=true" },
     ],
-    modelingTitle: "3Dモデリング & シミュレーション",
+    modelingTitle: "3D MODELING & SIMULATION",
     backToHome: "トップページに戻る",
-    status: "SYSTEM STATUS: 正常稼働"
+    status: "SYSTEM STATUS: ACTIVE"
   }
 };
 
@@ -1233,6 +1233,24 @@ function AppContent({
 }) {
   const location = useLocation();
 
+  useEffect(() => {
+    const page = `${location.pathname}${location.search}`;
+    const storageKey = `visit-reported:${page}`;
+
+    try {
+      if (sessionStorage.getItem(storageKey)) return;
+      sessionStorage.setItem(storageKey, "true");
+    } catch {
+      // Continue without session de-duping if storage is unavailable.
+    }
+
+    fetch("/api/visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ page }),
+      keepalive: true
+    }).catch(() => {});
+  }, [location.pathname, location.search]);
   return (
     <div className="min-h-screen">
       <AnimatePresence mode="wait">
