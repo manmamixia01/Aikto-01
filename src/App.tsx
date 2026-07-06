@@ -1156,11 +1156,33 @@ const KineticFitPage = ({ lang }: { lang: 'en' | 'jp' }) => {
 
 const Footer = ({ lang }: { lang: 'en' | 'jp' }) => {
   const t = translations[lang].footer;
+  const footerColumns = [
+    {
+      title: t.company,
+      links: ["About Me", "Works", "Skills", "Careers"]
+    },
+    {
+      title: t.capabilities,
+      links: [t.hardware, t.web, t.design, t.visual]
+    }
+  ];
+
+  const footerReveal = {
+    initial: { opacity: 0, y: 32 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.25, margin: "0px 0px -80px 0px" },
+    transition: { duration: 0.8, ease: [0.215, 0.61, 0.355, 1] }
+  };
+
   return (
     <footer className="bg-bg-dark border-t border-white/10 py-12 md:py-20 px-6 min-h-screen md:min-h-0 flex flex-col justify-center">
-      <Reveal className="full-width-container">
+      <div className="full-width-container">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-12 md:mb-20">
-          <div className="col-span-1 md:col-span-2">
+          <motion.div
+            {...footerReveal}
+            transition={{ ...footerReveal.transition, delay: 0 }}
+            className="col-span-1 md:col-span-2"
+          >
             <h2 className="text-2xl md:text-3xl font-bold font-display tracking-tighter mb-4 md:mb-6 uppercase">AKITO</h2>
             <p className="text-white/40 max-w-sm mb-6 md:mb-8 text-sm md:text-base">
               {t.desc}
@@ -1179,43 +1201,54 @@ const Footer = ({ lang }: { lang: 'en' | 'jp' }) => {
                 <Search size={18} className="relative z-10" />
               </a>
             </div>
-          </div>
-          
+          </motion.div>
+
           {/* Side-by-side on mobile */}
           <div className="grid grid-cols-2 md:grid-cols-1 col-span-1 md:col-span-2 gap-8 md:gap-12">
-            <div>
-              <h4 className="font-bold mb-4 md:mb-6 text-[10px] md:text-sm tracking-widest uppercase">{t.company}</h4>
-              <ul className="space-y-2 md:space-y-4 text-white/50 text-xs md:text-sm">
-                <li><a href="#" className="hover:text-white transition-colors nav-link-hover magnetic">About Me</a></li>
-                <li><a href="#" className="hover:text-white transition-colors nav-link-hover magnetic">Works</a></li>
-                <li><a href="#" className="hover:text-white transition-colors nav-link-hover magnetic">Skills</a></li>
-                <li><a href="#" className="hover:text-white transition-colors nav-link-hover magnetic">Careers</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4 md:mb-6 text-[10px] md:text-sm tracking-widest uppercase">{t.capabilities}</h4>
-              <ul className="space-y-2 md:space-y-4 text-white/50 text-xs md:text-sm">
-                <li><a href="#" className="hover:text-white transition-colors nav-link-hover magnetic">{t.hardware}</a></li>
-                <li><a href="#" className="hover:text-white transition-colors nav-link-hover magnetic">{t.web}</a></li>
-                <li><a href="#" className="hover:text-white transition-colors nav-link-hover magnetic">{t.design}</a></li>
-                <li><a href="#" className="hover:text-white transition-colors nav-link-hover magnetic">{t.visual}</a></li>
-              </ul>
-            </div>
+            {footerColumns.map((column, columnIndex) => (
+              <motion.div
+                key={column.title}
+                {...footerReveal}
+                transition={{ ...footerReveal.transition, delay: 0.12 + columnIndex * 0.14 }}
+              >
+                <h4 className="font-bold mb-4 md:mb-6 text-[10px] md:text-sm tracking-widest uppercase">{column.title}</h4>
+                <ul className="space-y-2 md:space-y-4 text-white/50 text-xs md:text-sm">
+                  {column.links.map((link, linkIndex) => (
+                    <motion.li
+                      key={link}
+                      initial={{ opacity: 0, y: 14 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.4, margin: "0px 0px -80px 0px" }}
+                      transition={{
+                        duration: 0.55,
+                        delay: 0.24 + columnIndex * 0.14 + linkIndex * 0.06,
+                        ease: [0.215, 0.61, 0.355, 1]
+                      }}
+                    >
+                      <a href="#" className="hover:text-white transition-colors nav-link-hover magnetic">{link}</a>
+                    </motion.li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
           </div>
         </div>
-        <div className="flex flex-col md:flex-row justify-between items-center pt-8 md:pt-12 border-t border-white/5 text-[8px] md:text-xs font-bold tracking-widest text-white/20">
+        <motion.div
+          {...footerReveal}
+          transition={{ ...footerReveal.transition, delay: 0.42 }}
+          className="flex flex-col md:flex-row justify-between items-center pt-8 md:pt-12 border-t border-white/5 text-[8px] md:text-xs font-bold tracking-widest text-white/20"
+        >
           <p>© 2026 AkitoHattori. PORTFOLIO WEBSITE.</p>
           <div className="flex gap-4 md:gap-8 mt-4 md:mt-0">
             <a href="#" className="hover:text-white transition-colors magnetic uppercase">Privacy</a>
             <a href="#" className="hover:text-white transition-colors magnetic uppercase">Terms</a>
             <a href="#" className="hover:text-white transition-colors magnetic uppercase">Supply</a>
           </div>
-        </div>
-      </Reveal>
+        </motion.div>
+      </div>
     </footer>
   );
 };
-
 function AppContent({
   lang,
   setLang,
