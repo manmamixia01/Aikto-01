@@ -37,7 +37,7 @@
       @media (orientation: landscape) and (max-height: 560px) { .guide { width: min(62vw, 460px); } .copy { top: calc(100% + 14px); } .copy span { display: none; } }
     </style>
     <script type="importmap">
-      {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}
+      {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/","mindar-image-three":"https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"}}
     </script>
   </head>
   <body>
@@ -51,7 +51,7 @@
 
     <script type="module">
       import * as THREE from "three";
-      import { MindARThree } from "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js";
+      import { MindARThree } from "mindar-image-three";
 
       const ar = document.querySelector("#ar");
       const hud = document.querySelector("#hud");
@@ -81,14 +81,21 @@
         return { targetUrl: "/ar/default-target.mind", aspectRatio: 660 / 1092 };
       };
 
-      const lineRectangle = (width, height, material) => {
-        const x = width / 2, y = height / 2;
-        const geometry = new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(-x,-y,0), new THREE.Vector3(x,-y,0),
-          new THREE.Vector3(x,y,0), new THREE.Vector3(-x,y,0),
-          new THREE.Vector3(-x,-y,0)
-        ]);
-        return new THREE.Line(geometry, material);
+      const trackingFrame = (parent, ratio) => {
+        const thickness = .008;
+        const material = new THREE.MeshBasicMaterial({ color: 0x4dff9e, side: THREE.DoubleSide, depthTest: false, depthWrite: false, toneMapped: false });
+        const edges = [
+          [1 + thickness, thickness, 0, ratio / 2],
+          [1 + thickness, thickness, 0, -ratio / 2],
+          [thickness, ratio + thickness, -.5, 0],
+          [thickness, ratio + thickness, .5, 0]
+        ];
+        edges.forEach(([width, height, x, y]) => {
+          const edge = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
+          edge.position.set(x, y, .002);
+          edge.renderOrder = 20;
+          parent.add(edge);
+        });
       };
 
       const start = async () => {
@@ -103,41 +110,45 @@
             container: ar,
             imageTargetSrc: config.targetUrl,
             maxTrack: 1,
-            filterMinCF: .0001,
-            filterBeta: .015,
-            warmupTolerance: 4,
-            missTolerance: 8
+            warmupTolerance: 2,
+            missTolerance: 10,
+            uiLoading: "no",
+            uiScanning: "no",
+            uiError: "no"
           });
           const { renderer, scene, camera } = mindar;
           renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-          renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-          scene.add(new THREE.HemisphereLight(0xdfffee, 0x163325, 2.3));
+          scene.add(new THREE.HemisphereLight(0xdfffee, 0x163325, 3));
           const key = new THREE.DirectionalLight(0xffffff, 3.4);
           key.position.set(-1.8, 2.4, 3.5);
           scene.add(key);
 
           const anchor = mindar.addAnchor(0);
           const root = new THREE.Group();
-          root.position.z = .035;
           anchor.group.add(root);
 
-          const frameMaterial = new THREE.LineBasicMaterial({ color: 0x72f0b4, transparent: true, opacity: .88 });
-          const frame = lineRectangle(1.01, ratio + .01, frameMaterial);
-          frame.position.z = .004;
-          root.add(frame);
+          trackingFrame(root, ratio);
+
+          const targetGlow = new THREE.Mesh(
+            new THREE.PlaneGeometry(.98, Math.max(.2, ratio - .02)),
+            new THREE.MeshBasicMaterial({ color: 0x30f59a, transparent: true, opacity: .07, side: THREE.DoubleSide, depthTest: false, depthWrite: false })
+          );
+          targetGlow.position.z = .001;
+          targetGlow.renderOrder = 1;
+          root.add(targetGlow);
 
           const pedestal = new THREE.Mesh(
             new THREE.CylinderGeometry(.18, .24, .055, 48),
-            new THREE.MeshPhysicalMaterial({ color: 0x102b20, metalness: .72, roughness: .24, clearcoat: 1 })
+            new THREE.MeshBasicMaterial({ color: 0x123f2b })
           );
           pedestal.rotation.x = Math.PI / 2;
           pedestal.position.z = .075;
           root.add(pedestal);
 
           const crystal = new THREE.Mesh(
-            new THREE.IcosahedronGeometry(.16, 1),
-            new THREE.MeshPhysicalMaterial({ color: 0x73f5ba, emissive: 0x0a3b27, emissiveIntensity: .85, metalness: .12, roughness: .12, transmission: .18, thickness: .3, clearcoat: 1 })
+            new THREE.IcosahedronGeometry(.19, 1),
+            new THREE.MeshNormalMaterial({ flatShading: true })
           );
           crystal.position.z = .29;
           crystal.scale.y = 1.32;
@@ -164,7 +175,7 @@
             particles.add(particle);
           }
 
-          anchor.onTargetFound = () => setState("tracking", "TRACKING");
+          anchor.onTargetFound = () => setState("tracking", "TRACKING · 3D ACTIVE");
           anchor.onTargetLost = () => setState("searching", "SEARCHING");
           await mindar.start();
           setState("searching", "SEARCHING");
