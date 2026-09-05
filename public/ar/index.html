@@ -196,10 +196,29 @@
           // Use an explicit async startup so virtual cameras either start or show
           // a useful error instead of remaining on CAMERA STARTING forever.
           mindar._startVideo = async () => {
-            const stream = await navigator.mediaDevices.getUserMedia({
-              audio: false,
-              video: { facingMode: { ideal: "environment" } }
-            });
+            if (!navigator.mediaDevices?.getUserMedia) throw new Error("このブラウザはカメラに対応していません。");
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const cameras = devices.filter((device) => device.kind === "videoinput");
+            const virtualCamera = cameras.find((device) => /obs|virtual/i.test(device.label));
+            const candidates = [];
+            if (virtualCamera) candidates.push({ deviceId: { exact: virtualCamera.deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } });
+            candidates.push({ facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } });
+            for (const camera of cameras) {
+              if (camera.deviceId !== virtualCamera?.deviceId) candidates.push({ deviceId: { exact: camera.deviceId } });
+            }
+            candidates.push(true);
+            let stream;
+            let lastError;
+            for (const video of candidates) {
+              try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: false, video });
+                break;
+              } catch (error) {
+                lastError = error;
+                if (error?.name === "NotAllowedError" || error?.name === "SecurityError") throw error;
+              }
+            }
+            if (!stream) throw lastError || new Error("使用できるカメラが見つかりません。");
             const video = document.createElement("video");
             video.autoplay = true;
             video.muted = true;
@@ -271,21 +290,29 @@
           try { mindar?.controller?.stopProcessVideo(); } catch (_) {}
           mindar?.video?.srcObject?.getTracks().forEach((track) => track.stop());
           mindar?.renderer?.setAnimationLoop(null);
+          try { mindar?.renderer?.dispose(); } catch (_) {}
           ar.replaceChildren();
           running = false;
           const insecure = location.protocol !== "https:" && location.hostname !== "localhost";
           const initializationError = /認識データ|初期化/.test(error?.message || "");
+          const cameraErrors = {
+            NotAllowedError: "カメラが許可されていません。アドレスバー左側のサイト設定からカメラを許可してください。",
+            NotFoundError: "使用できるカメラが見つかりません。OBSの仮想カメラが起動しているか確認してください。",
+            NotReadableError: "カメラを開始できません。ほかのARタブやアプリがカメラを使用している可能性があります。",
+            AbortError: "カメラの開始が中断されました。ほかのカメラアプリを閉じて再試行してください。",
+            SecurityError: "ブラウザのセキュリティ設定でカメラが無効になっています。"
+          };
           errorText.textContent = insecure
             ? "カメラの利用にはHTTPSが必要です。安全なURLから開いてください。"
             : initializationError
               ? `${error.message} ページを再読み込みして、もう一度お試しください。`
-              : "ブラウザの設定でカメラを許可して、もう一度お試しください。";
+              : cameraErrors[error?.name] || `${error?.message || "カメラを開始できませんでした。"} もう一度お試しください。`;
           errorPanel.classList.add("show");
           setState("error", "CAMERA OFF");
         }
       };
 
-      retry.addEventListener("click", () => location.reload());
+      retry.addEventListener("click", start);
       start();
     </script>
   </body>
