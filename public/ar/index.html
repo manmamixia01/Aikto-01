@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#050706" />
+    <title>Business Card AR</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, "Helvetica Neue", "Hiragino Sans", "Yu Gothic UI", sans-serif; }
+      * { box-sizing: border-box; }
+      html, body, #ar { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #050706; }
+      body { position: fixed; inset: 0; }
+      #ar { position: fixed; inset: 0; }
+      #ar video, #ar canvas { max-width: none !important; max-height: none !important; }
+      .shade { position: fixed; inset: 0; z-index: 3; pointer-events: none; background: radial-gradient(circle at 50% 44%, transparent 25%, rgba(0,0,0,.16) 63%, rgba(0,0,0,.46) 100%); transition: opacity .25s ease; }
+      .shade.found { opacity: .18; }
+      .hud { position: fixed; inset: 0; z-index: 4; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); pointer-events: none; }
+      .guide { width: min(82vw, 560px); aspect-ratio: 1.6545; position: relative; transition: opacity .25s ease, transform .25s ease; }
+      .guide::before, .guide::after, .corners::before, .corners::after { content: ""; position: absolute; width: 42px; height: 42px; border-color: rgba(255,255,255,.94); filter: drop-shadow(0 2px 8px rgba(0,0,0,.5)); }
+      .guide::before { left: 0; top: 0; border-left: 2px solid; border-top: 2px solid; border-color: inherit; border-radius: 10px 0 0 0; }
+      .guide::after { right: 0; top: 0; border-right: 2px solid; border-top: 2px solid; border-color: inherit; border-radius: 0 10px 0 0; }
+      .corners::before { left: 0; bottom: 0; border-left: 2px solid; border-bottom: 2px solid; border-color: inherit; border-radius: 0 0 0 10px; }
+      .corners::after { right: 0; bottom: 0; border-right: 2px solid; border-bottom: 2px solid; border-color: inherit; border-radius: 0 0 10px 0; }
+      .copy { position: absolute; top: calc(100% + 26px); left: 50%; transform: translateX(-50%); width: min(88vw, 460px); text-align: center; text-shadow: 0 2px 12px #000; }
+      .copy strong { display: block; font-size: clamp(19px, 4.8vw, 26px); letter-spacing: .04em; }
+      .copy span { display: block; margin-top: 8px; color: rgba(255,255,255,.72); font-size: 13px; }
+      .found .guide { opacity: 0; transform: scale(.98); }
+      .status { position: fixed; z-index: 5; top: max(18px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 14px; border: 1px solid rgba(255,255,255,.2); border-radius: 999px; background: rgba(8,12,10,.58); backdrop-filter: blur(14px); font-size: 11px; font-weight: 700; letter-spacing: .16em; white-space: nowrap; }
+      .dot { width: 7px; height: 7px; border-radius: 50%; background: #f4c65d; box-shadow: 0 0 12px currentColor; }
+      .status.tracking .dot { background: #62f4b0; }
+      .error { position: fixed; z-index: 8; inset: 0; display: none; place-items: center; padding: 28px; background: rgba(4,7,6,.92); text-align: center; }
+      .error.show { display: grid; }
+      .error-card { width: min(100%, 420px); }
+      .error h1 { margin: 0 0 12px; font-size: 22px; }
+      .error p { margin: 0 0 22px; color: rgba(255,255,255,.7); line-height: 1.7; font-size: 14px; }
+      button { appearance: none; border: 0; border-radius: 999px; padding: 14px 25px; color: #07100c; background: #76f0b5; font: inherit; font-weight: 800; cursor: pointer; }
+      @media (orientation: landscape) and (max-height: 560px) { .guide { width: min(62vw, 460px); } .copy { top: calc(100% + 14px); } .copy span { display: none; } }
+    </style>
+    <script type="importmap">
+      {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}
+    </script>
+  </head>
+  <body>
+    <main id="ar" aria-label="名刺ARカメラ"></main>
+    <div id="shade" class="shade"></div>
+    <div id="hud" class="hud">
+      <div class="guide"><i class="corners"></i><div class="copy"><strong>名刺をかざしてください</strong><span>カード全体が枠に入るように映してください</span></div></div>
+    </div>
+    <div id="status" class="status" role="status" aria-live="polite"><i class="dot"></i><span>CAMERA STARTING</span></div>
+    <div id="error" class="error"><div class="error-card"><h1>カメラを開始できませんでした</h1><p id="errorText">カメラの使用を許可して、もう一度お試しください。</p><button id="retry" type="button">カメラを開始</button></div></div>
+
+    <script type="module">
+      import * as THREE from "three";
+      import { MindARThree } from "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js";
+
+      const ar = document.querySelector("#ar");
+      const hud = document.querySelector("#hud");
+      const shade = document.querySelector("#shade");
+      const status = document.querySelector("#status");
+      const statusText = status.querySelector("span");
+      const errorPanel = document.querySelector("#error");
+      const errorText = document.querySelector("#errorText");
+      const retry = document.querySelector("#retry");
+      let mindar = null;
+      let running = false;
+
+      const setState = (mode, text) => {
+        status.classList.toggle("tracking", mode === "tracking");
+        statusText.textContent = text;
+        hud.classList.toggle("found", mode === "tracking");
+        shade.classList.toggle("found", mode === "tracking");
+      };
+
+      const getConfig = async () => {
+        try {
+          const response = await fetch("/api/ar-target", { cache: "no-store" });
+          if (!response.ok) throw new Error();
+          const data = await response.json();
+          if (data.configured && data.targetUrl) return data;
+        } catch (_) {}
+        return { targetUrl: "/ar/default-target.mind", aspectRatio: 660 / 1092 };
+      };
+
+      const lineRectangle = (width, height, material) => {
+        const x = width / 2, y = height / 2;
+        const geometry = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(-x,-y,0), new THREE.Vector3(x,-y,0),
+          new THREE.Vector3(x,y,0), new THREE.Vector3(-x,y,0),
+          new THREE.Vector3(-x,-y,0)
+        ]);
+        return new THREE.Line(geometry, material);
+      };
+
+      const start = async () => {
+        if (running) return;
+        running = true;
+        errorPanel.classList.remove("show");
+        setState("searching", "CAMERA STARTING");
+        try {
+          const config = await getConfig();
+          const ratio = Math.max(.25, Math.min(4, Number(config.aspectRatio) || .6044));
+          mindar = new MindARThree({
+            container: ar,
+            imageTargetSrc: config.targetUrl,
+            maxTrack: 1,
+            filterMinCF: .0001,
+            filterBeta: .015,
+            warmupTolerance: 4,
+            missTolerance: 8
+          });
+          const { renderer, scene, camera } = mindar;
+          renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+          renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+          scene.add(new THREE.HemisphereLight(0xdfffee, 0x163325, 2.3));
+          const key = new THREE.DirectionalLight(0xffffff, 3.4);
+          key.position.set(-1.8, 2.4, 3.5);
+          scene.add(key);
+
+          const anchor = mindar.addAnchor(0);
+          const root = new THREE.Group();
+          root.position.z = .035;
+          anchor.group.add(root);
+
+          const frameMaterial = new THREE.LineBasicMaterial({ color: 0x72f0b4, transparent: true, opacity: .88 });
+          const frame = lineRectangle(1.01, ratio + .01, frameMaterial);
+          frame.position.z = .004;
+          root.add(frame);
+
+          const pedestal = new THREE.Mesh(
+            new THREE.CylinderGeometry(.18, .24, .055, 48),
+            new THREE.MeshPhysicalMaterial({ color: 0x102b20, metalness: .72, roughness: .24, clearcoat: 1 })
+          );
+          pedestal.rotation.x = Math.PI / 2;
+          pedestal.position.z = .075;
+          root.add(pedestal);
+
+          const crystal = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(.16, 1),
+            new THREE.MeshPhysicalMaterial({ color: 0x73f5ba, emissive: 0x0a3b27, emissiveIntensity: .85, metalness: .12, roughness: .12, transmission: .18, thickness: .3, clearcoat: 1 })
+          );
+          crystal.position.z = .29;
+          crystal.scale.y = 1.32;
+          root.add(crystal);
+
+          const rings = new THREE.Group();
+          rings.position.z = .23;
+          root.add(rings);
+          [0, 1, 2].forEach((index) => {
+            const ring = new THREE.Mesh(
+              new THREE.TorusGeometry(.25 + index * .045, .007, 10, 64),
+              new THREE.MeshBasicMaterial({ color: index === 1 ? 0xffffff : 0x74f2b7, transparent: true, opacity: .74 - index * .12 })
+            );
+            ring.rotation.set(Math.PI / 2 + index * .35, index * .48, index * .2);
+            rings.add(ring);
+          });
+
+          const particles = new THREE.Group();
+          root.add(particles);
+          for (let i = 0; i < 9; i++) {
+            const particle = new THREE.Mesh(new THREE.SphereGeometry(.009, 10, 10), new THREE.MeshBasicMaterial({ color: i % 2 ? 0xffffff : 0x74f2b7 }));
+            const angle = i / 9 * Math.PI * 2;
+            particle.userData = { angle, radius: .23 + (i % 3) * .055, speed: .32 + (i % 4) * .07 };
+            particles.add(particle);
+          }
+
+          anchor.onTargetFound = () => setState("tracking", "TRACKING");
+          anchor.onTargetLost = () => setState("searching", "SEARCHING");
+          await mindar.start();
+          setState("searching", "SEARCHING");
+          const clock = new THREE.Clock();
+          renderer.setAnimationLoop(() => {
+            const t = clock.getElapsedTime();
+            crystal.rotation.z = t * .55;
+            crystal.rotation.y = t * .8;
+            crystal.position.z = .29 + Math.sin(t * 2) * .018;
+            rings.rotation.z = t * .22;
+            rings.children.forEach((ring, i) => { ring.rotation.y += .003 + i * .0015; });
+            particles.children.forEach((particle) => {
+              const d = particle.userData;
+              const a = d.angle + t * d.speed;
+              particle.position.set(Math.cos(a) * d.radius, Math.sin(a) * d.radius * .55, .18 + Math.sin(a * 2 + t) * .12);
+            });
+            renderer.render(scene, camera);
+          });
+        } catch (error) {
+          console.error(error);
+          running = false;
+          const insecure = location.protocol !== "https:" && location.hostname !== "localhost";
+          errorText.textContent = insecure ? "カメラの利用にはHTTPSが必要です。安全なURLから開いてください。" : "ブラウザの設定でカメラを許可して、もう一度お試しください。";
+          errorPanel.classList.add("show");
+          setState("error", "CAMERA OFF");
+        }
+      };
+
+      retry.addEventListener("click", start);
+      start();
+    </script>
+  </body>
+</html>

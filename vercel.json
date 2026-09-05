@@ -1,6 +1,22 @@
 {
   "rewrites": [
     {
+      "source": "/ar",
+      "destination": "/ar/index.html"
+    },
+    {
+      "source": "/ar/",
+      "destination": "/ar/index.html"
+    },
+    {
+      "source": "/ar-admin",
+      "destination": "/ar-admin/index.html"
+    },
+    {
+      "source": "/ar-admin/",
+      "destination": "/ar-admin/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

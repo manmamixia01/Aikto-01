@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07100c" />
+    <title>AR Target Admin</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, "Helvetica Neue", "Hiragino Sans", "Yu Gothic UI", sans-serif; background: #07100c; color: #f5faf7; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 75% -10%, rgba(75,238,164,.16), transparent 38%), #07100c; }
+      main { width: min(1040px, calc(100% - 36px)); margin: 0 auto; padding: 72px 0 90px; }
+      header { max-width: 680px; margin-bottom: 40px; }
+      .eyebrow { margin: 0 0 13px; color: #73eeb1; font-size: 11px; font-weight: 800; letter-spacing: .18em; }
+      h1 { margin: 0; font-size: clamp(32px, 6vw, 58px); line-height: 1.04; letter-spacing: -.045em; }
+      .lead { margin: 18px 0 0; color: #aebcb4; line-height: 1.8; font-size: 15px; }
+      .grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(280px, .92fr); gap: 22px; align-items: start; }
+      .panel { border: 1px solid rgba(255,255,255,.1); border-radius: 24px; background: rgba(255,255,255,.045); box-shadow: 0 24px 70px rgba(0,0,0,.22); overflow: hidden; }
+      .panel-body { padding: clamp(22px, 4vw, 34px); }
+      h2 { margin: 0 0 22px; font-size: 17px; letter-spacing: -.02em; }
+      label { display: block; margin: 0 0 9px; color: #dfe8e3; font-size: 13px; font-weight: 700; }
+      .field + .field { margin-top: 22px; }
+      input[type="password"] { width: 100%; height: 50px; border: 1px solid rgba(255,255,255,.14); border-radius: 13px; outline: none; padding: 0 15px; background: rgba(0,0,0,.22); color: white; font: inherit; font-size: 16px; }
+      input[type="password"]:focus { border-color: #6be8aa; box-shadow: 0 0 0 3px rgba(107,232,170,.12); }
+      .drop { position: relative; min-height: 228px; display: grid; place-items: center; padding: 28px; border: 1px dashed rgba(255,255,255,.24); border-radius: 18px; background: rgba(0,0,0,.14); text-align: center; cursor: pointer; transition: border-color .18s, background .18s; }
+      .drop:hover, .drop.drag { border-color: #6be8aa; background: rgba(107,232,170,.07); }
+      .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+      .drop-icon { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 14px; border-radius: 15px; background: rgba(107,232,170,.12); color: #79efb4; font-size: 24px; }
+      .drop strong { display: block; font-size: 15px; }
+      .drop small { display: block; margin-top: 8px; color: #819188; line-height: 1.6; }
+      .preview { display: none; margin-top: 18px; }
+      .preview.show { display: block; }
+      .preview img { display: block; width: 100%; max-height: 340px; object-fit: contain; border-radius: 14px; background: #fff; }
+      .meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 11px; color: #92a198; font-size: 12px; }
+      .quality { margin-top: 13px; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.05); font-size: 12px; line-height: 1.6; }
+      .quality b { color: #72eeb0; }
+      .notes { margin: 0; padding: 0; list-style: none; color: #99a9a0; font-size: 13px; line-height: 1.7; }
+      .notes li { position: relative; padding-left: 20px; }
+      .notes li + li { margin-top: 9px; }
+      .notes li::before { content: "✓"; position: absolute; left: 0; color: #68e2a4; font-weight: 900; }
+      .current { margin-top: 26px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,.09); }
+      .current-card { display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; min-height: 70px; }
+      .current img { width: 96px; height: 58px; object-fit: cover; border-radius: 9px; background: rgba(255,255,255,.06); }
+      .current p { margin: 0; color: #d9e3dd; font-size: 13px; overflow-wrap: anywhere; }
+      .current time, .muted { display: block; margin-top: 5px; color: #7f9087; font-size: 11px; }
+      button { width: 100%; height: 54px; margin-top: 24px; border: 0; border-radius: 14px; color: #06100b; background: #72eeb0; font: inherit; font-weight: 900; cursor: pointer; transition: transform .15s, opacity .15s; }
+      button:hover:not(:disabled) { transform: translateY(-1px); }
+      button:disabled { opacity: .34; cursor: not-allowed; }
+      .progress { display: none; height: 4px; margin-top: 15px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,.08); }
+      .progress.show { display: block; }
+      .progress i { display: block; width: 0; height: 100%; background: #72eeb0; transition: width .25s ease; }
+      .message { min-height: 22px; margin: 13px 0 0; color: #9baca2; font-size: 12px; line-height: 1.6; }
+      .message.error { color: #ff9d97; }
+      .message.success { color: #73eeb1; }
+      @media (max-width: 760px) { main { padding-top: 44px; } .grid { grid-template-columns: 1fr; } .help { order: -1; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header><p class="eyebrow">MINDAR TARGET MANAGER</p><h1>名刺デザインを登録</h1><p class="lead">ここで登録した画像がARカメラの認識対象になります。変換とアップロードが完了すると、次にカメラを開いたときから新しい名刺を追跡します。</p></header>
+      <div class="grid">
+        <section class="panel"><div class="panel-body">
+          <h2>新しいターゲット</h2>
+          <div class="field"><label for="file">名刺画像</label><label class="drop" id="drop"><input id="file" type="file" accept="image/jpeg,image/png,image/webp" /><span><i class="drop-icon">＋</i><strong>画像を選択またはドロップ</strong><small>JPG・PNG・WebP / 10MBまで<br />実際に印刷するデザインを使用してください</small></span></label></div>
+          <div id="preview" class="preview"><img id="previewImage" alt="選択した名刺画像" /><div class="meta"><span id="fileName"></span><span id="dimensions"></span></div><div id="quality" class="quality"></div></div>
+          <div class="field"><label for="password">管理パスワード</label><input id="password" type="password" autocomplete="current-password" placeholder="パスワードを入力" /></div>
+          <button id="upload" type="button" disabled>ターゲットを登録</button>
+          <div id="progress" class="progress"><i></i></div><p id="message" class="message" aria-live="polite"></p>
+        </div></section>
+        <aside class="panel help"><div class="panel-body">
+          <h2>認識しやすい画像</h2>
+          <ul class="notes"><li>文字、ロゴ、写真など細かい特徴が面全体にある</li><li>左右対称や同じ模様の繰り返しが少ない</li><li>光沢や反射が少なく、十分な明るさで撮影できる</li><li>登録画像と印刷物のトリミングや比率が同じ</li></ul>
+          <div class="current"><h2>現在のターゲット</h2><div id="current" class="current-card"><span class="muted">確認中…</span></div></div>
+        </div></aside>
+      </div>
+    </main>
+    <canvas id="work" hidden></canvas>
+    <script type="module">
+      const fileInput = document.querySelector("#file");
+      const password = document.querySelector("#password");
+      const upload = document.querySelector("#upload");
+      const preview = document.querySelector("#preview");
+      const previewImage = document.querySelector("#previewImage");
+      const fileName = document.querySelector("#fileName");
+      const dimensions = document.querySelector("#dimensions");
+      const quality = document.querySelector("#quality");
+      const message = document.querySelector("#message");
+      const progress = document.querySelector("#progress");
+      const progressBar = progress.querySelector("i");
+      const current = document.querySelector("#current");
+      const drop = document.querySelector("#drop");
+      const canvas = document.querySelector("#work");
+      let selected = null;
+      let previewUrl = "";
+
+      const updateButton = () => { upload.disabled = !selected || !password.value.trim(); };
+      const setMessage = (text, type = "") => { message.textContent = text; message.className = `message ${type}`; };
+      const setProgress = (value) => { progress.classList.add("show"); progressBar.style.width = `${Math.max(0, Math.min(100, value))}%`; };
+      const loadImage = (url) => new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = reject; image.src = url; });
+      const toBase64 = (input) => {
+        const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        return btoa(binary);
+      };
+
+      const rateImage = (source) => {
+        const sample = document.createElement("canvas");
+        const scale = Math.min(1, 320 / Math.max(source.width, source.height));
+        sample.width = Math.max(1, Math.round(source.width * scale));
+        sample.height = Math.max(1, Math.round(source.height * scale));
+        const ctx = sample.getContext("2d", { willReadFrequently: true });
+        ctx.drawImage(source, 0, 0, sample.width, sample.height);
+        const { data } = ctx.getImageData(0, 0, sample.width, sample.height);
+        const gray = new Uint8Array(sample.width * sample.height);
+        let sum = 0;
+        for (let i = 0, p = 0; i < data.length; i += 4, p++) { gray[p] = data[i] * .299 + data[i + 1] * .587 + data[i + 2] * .114; sum += gray[p]; }
+        const mean = sum / gray.length;
+        let variance = 0, edges = 0;
+        const cells = new Uint16Array(12);
+        for (let y = 1; y < sample.height; y++) for (let x = 1; x < sample.width; x++) {
+          const i = y * sample.width + x;
+          variance += (gray[i] - mean) ** 2;
+          if (Math.abs(gray[i] - gray[i - 1]) + Math.abs(gray[i] - gray[i - sample.width]) > 42) {
+            edges++;
+            const cx = Math.min(3, Math.floor(x / sample.width * 4));
+            const cy = Math.min(2, Math.floor(y / sample.height * 3));
+            cells[cy * 4 + cx]++;
+          }
+        }
+        const contrast = Math.sqrt(variance / Math.max(1, gray.length));
+        const density = edges / Math.max(1, gray.length);
+        const covered = [...cells].filter((n) => n > gray.length / 12 * .018).length;
+        const score = Math.round(Math.min(100, contrast * 1.1 + density * 600 + covered * 2.4));
+        if (score >= 70 && covered >= 9) return { label: "高", note: "特徴点が全体にあり、追跡に向いています。" };
+        if (score >= 48 && covered >= 6) return { label: "中", note: "利用できます。文字や図形を余白部分にも増やすと安定します。" };
+        return { label: "低", note: "無地の面や繰り返しを減らし、細かな文字・写真・図形を増やしてください。" };
+      };
+
+      const selectFile = async (file) => {
+        setMessage(""); selected = null; updateButton();
+        if (!file) return;
+        if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 10_000_000) { setMessage("JPG・PNG・WebPの10MB以下の画像を選んでください。", "error"); return; }
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = URL.createObjectURL(file);
+        try {
+          const image = await loadImage(previewUrl);
+          if (Math.max(image.naturalWidth, image.naturalHeight) < 480) { setMessage("解像度が低すぎます。長辺480px以上の画像を使用してください。", "error"); return; }
+          selected = { file, image };
+          previewImage.src = previewUrl;
+          fileName.textContent = file.name;
+          dimensions.textContent = `${image.naturalWidth} × ${image.naturalHeight}px`;
+          const rating = rateImage(image);
+          quality.innerHTML = `認識しやすさ <b>${rating.label}</b> — ${rating.note}`;
+          preview.classList.add("show"); updateButton();
+        } catch (_) { setMessage("画像を読み込めませんでした。別の画像をお試しください。", "error"); }
+      };
+
+      fileInput.addEventListener("change", () => selectFile(fileInput.files[0]));
+      password.addEventListener("input", updateButton);
+      ["dragenter", "dragover"].forEach((name) => drop.addEventListener(name, (event) => { event.preventDefault(); drop.classList.add("drag"); }));
+      ["dragleave", "drop"].forEach((name) => drop.addEventListener(name, (event) => { event.preventDefault(); drop.classList.remove("drag"); }));
+      drop.addEventListener("drop", (event) => selectFile(event.dataTransfer.files[0]));
+
+      const canvasBlob = () => new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("画像変換に失敗しました")), "image/jpeg", .92));
+
+      upload.addEventListener("click", async () => {
+        if (!selected || !password.value.trim()) return;
+        upload.disabled = true; fileInput.disabled = true; password.disabled = true;
+        setMessage("画像を認識データに変換しています。画面を閉じずにお待ちください。"); setProgress(5);
+        try {
+          const maxSide = 1400;
+          const scale = Math.min(1, maxSide / Math.max(selected.image.naturalWidth, selected.image.naturalHeight));
+          canvas.width = Math.round(selected.image.naturalWidth * scale);
+          canvas.height = Math.round(selected.image.naturalHeight * scale);
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(selected.image, 0, 0, canvas.width, canvas.height);
+          const { Compiler } = await import("https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js");
+          const compiler = new Compiler();
+          await compiler.compileImageTargets([canvas], (done) => setProgress(8 + done * .67));
+          const target = await compiler.exportData();
+          const imageBlob = await canvasBlob();
+          if (imageBlob.size + target.byteLength > 3_000_000) throw new Error("認識データが大きすぎます。画像を少し縮小してから再度お試しください。");
+          setMessage("認識データを保存しています…"); setProgress(82);
+          const [imageBuffer, targetBuffer] = await Promise.all([imageBlob.arrayBuffer(), Promise.resolve(target)]);
+          const response = await fetch("/api/ar-target", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              password: password.value,
+              image: toBase64(imageBuffer),
+              target: toBase64(targetBuffer),
+              imageType: "image/jpeg",
+              aspectRatio: canvas.height / canvas.width,
+              originalName: selected.file.name
+            })
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            if (response.status === 401) throw new Error("管理パスワードが違います。");
+            if (response.status === 503) throw new Error("Vercel Blobが未設定です。プロジェクトのStorageでPublic Blobを接続してください。");
+            throw new Error(result.error || "アップロードに失敗しました。");
+          }
+          setProgress(100); setMessage("登録しました。ARカメラを開き直すと新しい名刺を認識します。", "success");
+          renderCurrent(result);
+        } catch (error) {
+          console.error(error); setMessage(error.message || "登録に失敗しました。", "error");
+        } finally {
+          fileInput.disabled = false; password.disabled = false; updateButton();
+        }
+      });
+
+      const renderCurrent = (data) => {
+        if (!data?.configured && !data?.imageUrl) { current.innerHTML = '<span class="muted">未登録です。現在はテスト用ターゲットが使われます。</span>'; return; }
+        const date = data.updatedAt ? new Date(data.updatedAt).toLocaleString("ja-JP") : "";
+        current.replaceChildren();
+        const image = document.createElement("img");
+        image.src = data.imageUrl;
+        image.alt = "現在の認識対象";
+        const info = document.createElement("div");
+        const name = document.createElement("p");
+        name.textContent = data.originalName || "登録済み画像";
+        const time = document.createElement("time");
+        time.textContent = date;
+        info.append(name, time);
+        current.append(image, info);
+      };
+
+      fetch("/api/ar-target", { cache: "no-store" }).then((response) => response.json()).then(renderCurrent).catch(() => { current.innerHTML = '<span class="muted">現在の登録内容を取得できませんでした。</span>'; });
+    </script>
+  </body>
+</html>
