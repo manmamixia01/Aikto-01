@@ -33,6 +33,10 @@
       .error-card { width: min(100%, 420px); }
       .error h1 { margin: 0 0 12px; font-size: 22px; }
       .error p { margin: 0 0 22px; color: rgba(255,255,255,.7); line-height: 1.7; font-size: 14px; }
+      .camera-choice { display: none; margin: 0 0 18px; text-align: left; }
+      .camera-choice.show { display: block; }
+      .camera-choice span { display: block; margin-bottom: 8px; color: rgba(255,255,255,.72); font-size: 12px; }
+      select { width: 100%; min-height: 48px; border: 1px solid rgba(255,255,255,.18); border-radius: 12px; padding: 0 12px; background: #101713; color: #fff; font: inherit; font-size: 16px; }
       button { appearance: none; border: 0; border-radius: 999px; padding: 14px 25px; color: #07100c; background: #76f0b5; font: inherit; font-weight: 800; cursor: pointer; }
       @media (orientation: landscape) and (max-height: 560px) { .guide { width: min(62vw, 460px); } .copy { top: calc(100% + 14px); } .copy span { display: none; } }
     </style>
@@ -47,7 +51,7 @@
       <div class="guide"><i class="corners"></i><div class="copy"><strong>名刺をかざしてください</strong><span>カード全体が枠に入るように映してください</span></div></div>
     </div>
     <div id="status" class="status" role="status" aria-live="polite"><i class="dot"></i><span>CAMERA STARTING</span></div>
-    <div id="error" class="error"><div class="error-card"><h1>カメラを開始できませんでした</h1><p id="errorText">カメラの使用を許可して、もう一度お試しください。</p><button id="retry" type="button">カメラを開始</button></div></div>
+    <div id="error" class="error"><div class="error-card"><h1>カメラを開始できませんでした</h1><p id="errorText">カメラの使用を許可して、もう一度お試しください。</p><label id="cameraChoice" class="camera-choice"><span>使用するカメラ</span><select id="cameraSelect"><option value="">自動選択</option></select></label><button id="retry" type="button">カメラを開始</button></div></div>
 
     <script type="module">
       import * as THREE from "three";
@@ -61,6 +65,8 @@
       const statusText = status.querySelector("span");
       const errorPanel = document.querySelector("#error");
       const errorText = document.querySelector("#errorText");
+      const cameraChoice = document.querySelector("#cameraChoice");
+      const cameraSelect = document.querySelector("#cameraSelect");
       const retry = document.querySelector("#retry");
       let mindar = null;
       let running = false;
@@ -201,6 +207,8 @@
             const cameras = devices.filter((device) => device.kind === "videoinput");
             const virtualCamera = cameras.find((device) => /obs|virtual/i.test(device.label));
             const candidates = [];
+            const selectedCamera = cameraSelect.value;
+            if (selectedCamera) candidates.push({ deviceId: { exact: selectedCamera }, width: { ideal: 1280 }, height: { ideal: 720 } });
             if (virtualCamera) candidates.push({ deviceId: { exact: virtualCamera.deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } });
             candidates.push({ facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } });
             for (const camera of cameras) {
@@ -308,6 +316,14 @@
               ? `${error.message} ページを再読み込みして、もう一度お試しください。`
               : cameraErrors[error?.name] || `${error?.message || "カメラを開始できませんでした。"} もう一度お試しください。`;
           errorPanel.classList.add("show");
+          try {
+            const cameras = (await navigator.mediaDevices?.enumerateDevices?.() || []).filter((device) => device.kind === "videoinput");
+            const currentValue = cameraSelect.value;
+            cameraSelect.replaceChildren(new Option("自動選択", ""));
+            cameras.forEach((camera, index) => cameraSelect.add(new Option(camera.label || `カメラ ${index + 1}`, camera.deviceId)));
+            if ([...cameraSelect.options].some((option) => option.value === currentValue)) cameraSelect.value = currentValue;
+            cameraChoice.classList.toggle("show", cameras.length > 0);
+          } catch (_) {}
           setState("error", "CAMERA OFF");
         }
       };
