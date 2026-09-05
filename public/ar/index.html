@@ -52,6 +52,7 @@
     <script type="module">
       import * as THREE from "three";
       import { MindARThree } from "mindar-image-three";
+      import { Controller } from "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js";
 
       const ar = document.querySelector("#ar");
       const hud = document.querySelector("#hud");
@@ -63,6 +64,14 @@
       const retry = document.querySelector("#retry");
       let mindar = null;
       let running = false;
+
+      const deadline = (promise, milliseconds, message) => {
+        let timer;
+        return Promise.race([
+          promise,
+          new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), milliseconds); })
+        ]).finally(() => clearTimeout(timer));
+      };
 
       const setState = (mode, text) => {
         status.classList.toggle("tracking", mode === "tracking");
@@ -105,6 +114,10 @@
         setState("searching", "CAMERA STARTING");
         try {
           const config = await getConfig();
+          setState("searching", "LOADING TARGET");
+          const targetResponse = await fetch(config.targetUrl, { cache: "no-store" });
+          if (!targetResponse.ok) throw new Error("認識データを読み込めませんでした。");
+          const targetBytes = await targetResponse.arrayBuffer();
           const ratio = Math.max(.25, Math.min(4, Number(config.aspectRatio) || .6044));
           mindar = new MindARThree({
             container: ar,
@@ -177,7 +190,66 @@
 
           anchor.onTargetFound = () => setState("tracking", "TRACKING · 3D ACTIVE");
           anchor.onTargetLost = () => setState("searching", "SEARCHING");
-          await mindar.start();
+
+          // MindAR 1.2.5 wraps async startup in a Promise constructor. If target
+          // loading or warmup rejects, the upstream promise can remain pending.
+          // Use an explicit async startup so virtual cameras either start or show
+          // a useful error instead of remaining on CAMERA STARTING forever.
+          mindar._startVideo = async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              audio: false,
+              video: { facingMode: { ideal: "environment" } }
+            });
+            const video = document.createElement("video");
+            video.autoplay = true;
+            video.muted = true;
+            video.playsInline = true;
+            video.style.cssText = "position:absolute;top:0;left:0;z-index:-2;max-width:none;max-height:none";
+            ar.append(video);
+            video.srcObject = stream;
+            mindar.video = video;
+            await video.play();
+            if (!video.videoWidth || !video.videoHeight) {
+              await new Promise((resolve) => video.addEventListener("loadedmetadata", resolve, { once: true }));
+            }
+            video.width = video.videoWidth;
+            video.height = video.videoHeight;
+          };
+
+          mindar._startAR = async () => {
+            const video = mindar.video;
+            mindar.controller = new Controller({
+              inputWidth: video.videoWidth,
+              inputHeight: video.videoHeight,
+              maxTrack: 1,
+              warmupTolerance: 2,
+              missTolerance: 10,
+              onUpdate: (data) => {
+                if (data.type !== "updateMatrix" || data.targetIndex !== 0) return;
+                const visible = data.worldMatrix !== null;
+                anchor.group.visible = visible;
+                if (visible) anchor.group.matrix.fromArray(data.worldMatrix).multiply(mindar.postMatrixs[0]);
+                if (visible !== anchor.visible) {
+                  anchor.visible = visible;
+                  if (visible) anchor.onTargetFound?.(); else anchor.onTargetLost?.();
+                }
+              }
+            });
+            const { dimensions } = mindar.controller.addImageTargetsFromBuffer(targetBytes);
+            if (!dimensions?.length) throw new Error("認識データにターゲットがありません。");
+            mindar.postMatrixs = dimensions.map(([width, height]) => new THREE.Matrix4().compose(
+              new THREE.Vector3(width / 2, height / 2, 0),
+              new THREE.Quaternion(),
+              new THREE.Vector3(width, width, width)
+            ));
+            mindar.resize();
+            setState("searching", "INITIALIZING");
+            await mindar.controller.dummyRun(video);
+            mindar.controller.processVideo(video);
+          };
+
+          setState("searching", "STARTING CAMERA");
+          await deadline(mindar.start(), 45000, "ARの初期化がタイムアウトしました。");
           setState("searching", "SEARCHING");
           const clock = new THREE.Clock();
           renderer.setAnimationLoop(() => {
@@ -196,15 +268,24 @@
           });
         } catch (error) {
           console.error(error);
+          try { mindar?.controller?.stopProcessVideo(); } catch (_) {}
+          mindar?.video?.srcObject?.getTracks().forEach((track) => track.stop());
+          mindar?.renderer?.setAnimationLoop(null);
+          ar.replaceChildren();
           running = false;
           const insecure = location.protocol !== "https:" && location.hostname !== "localhost";
-          errorText.textContent = insecure ? "カメラの利用にはHTTPSが必要です。安全なURLから開いてください。" : "ブラウザの設定でカメラを許可して、もう一度お試しください。";
+          const initializationError = /認識データ|初期化/.test(error?.message || "");
+          errorText.textContent = insecure
+            ? "カメラの利用にはHTTPSが必要です。安全なURLから開いてください。"
+            : initializationError
+              ? `${error.message} ページを再読み込みして、もう一度お試しください。`
+              : "ブラウザの設定でカメラを許可して、もう一度お試しください。";
           errorPanel.classList.add("show");
           setState("error", "CAMERA OFF");
         }
       };
 
-      retry.addEventListener("click", start);
+      retry.addEventListener("click", () => location.reload());
       start();
     </script>
   </body>
