@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#070b11" />
+    <meta name="description" content="名刺の上に広がる、宇宙・身体・飛行をつなぐ3Dモーション。" />
+    <title>Motion Study — Akito Hattori</title>
+    <link rel="stylesheet" href="/animation/player.css" />
+  </head>
+  <body>
+    <main class="player" aria-label="名刺サイズの3Dアニメーションプレーヤー">
+      <div id="viewport" aria-label="3Dアニメーション。ドラッグで視点を変更できます"></div>
+      <div class="vignette" aria-hidden="true"></div>
+
+      <header class="masthead">
+        <div class="identity"><span class="identity-name">AKITO</span><span class="identity-divider" aria-hidden="true">/</span><span class="identity-note">MOTION STUDY</span></div>
+        <div class="top-actions"><span class="scale-badge"><span class="card-icon" aria-hidden="true"></span>91 × 55 <span class="unit">mm</span></span><button id="fullscreen" class="icon-button" type="button" title="全画面表示" aria-label="全画面表示"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/></svg></button></div>
+      </header>
+
+      <div class="scene-note" aria-hidden="true"><span class="live-dot"></span>REALTIME 3D<span class="scene-note-divider">·</span>ONE CARD. MANY WORLDS.</div>
+
+      <section class="story-panel" aria-label="再生操作">
+        <div class="story-heading">
+          <div class="chapter-copy"><p class="eyebrow">CHAPTER <span id="chapter-number">01</span><span class="eyebrow-line" aria-hidden="true"></span><span>FROM THE GROUND UP</span></p><h1 id="chapter-title">宇宙へ。</h1><p id="chapter-description">ロケットが上昇し、小さな舞台から物語が始まる。</p></div>
+          <div class="view-controls"><button id="orbit" class="text-button" type="button" aria-pressed="false" title="自動カメラの切り替え">視点：自動</button><button id="reset-view" class="text-button" type="button" title="視点を初期位置に戻す">視点を戻す<span aria-hidden="true">↗</span></button></div>
+        </div>
+
+        <div class="timeline-row"><input id="timeline" class="timeline" type="range" min="0" max="64" step="0.01" value="0" aria-label="アニメーションの再生位置" /><span id="time-label" class="time-label">00:00 / 01:04</span></div>
+
+        <div class="controls-row">
+          <div class="transport"><button id="play" class="play-button" type="button" title="再生・一時停止" aria-label="一時停止">一時停止</button><button id="replay" class="icon-button" type="button" title="最初から再生" aria-label="最初から再生"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 8a8 8 0 1 1-1 7M5 3v5h5"/></svg></button><label class="speed-label"><span class="sr-only">再生速度</span><select id="speed" title="再生速度"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option></select></label></div>
+          <nav id="chapters" class="chapters" aria-label="シーンを選択"><button type="button" data-time="0" class="active" title="打ち上げから再生"><span>01</span>打ち上げ</button><button type="button" data-time="10" title="衛星から再生"><span>02</span>衛星・光通信</button><button type="button" data-time="22" title="手から再生"><span>03</span>手と骨格</button><button type="button" data-time="32" title="キーボードから再生"><span>04</span>キーボード</button><button type="button" data-time="42" title="足場から再生"><span>05</span>足場</button><button type="button" data-time="51" title="飛行から再生"><span>06</span>飛行</button></nav>
+        </div>
+        <div class="player-footnote"><span>ドラッグで回転 · スクロールで拡大</span><a class="preview-tag" href="/animation/sources.html" target="_blank" rel="noopener" style="color:inherit;pointer-events:auto">使用モデル・参考資料 ↗</a></div>
+      </section>
+
+      <div id="loading" class="loading-overlay" role="status" aria-live="polite"><div class="loading-symbol" aria-hidden="true"><span></span><span></span><span></span></div><p class="loading-title">A small stage.<br>A world of possibilities.</p><p id="loading-status">3Dモデルを読み込んでいます…</p></div>
+      <div id="error" class="error-message" role="alert" hidden></div>
+    </main>
+    <script type="module" src="/animation/scene.js"></script>
+  </body>
+</html>

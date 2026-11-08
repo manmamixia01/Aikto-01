@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "build:animation": "node scripts/build-animation.mjs",
+    "prebuild": "npm run build:animation"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

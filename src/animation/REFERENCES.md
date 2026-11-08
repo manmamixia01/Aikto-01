@@ -1,0 +1,40 @@
+# Animation references and asset provenance
+
+Checked 2026-11-08. The animation is a miniature visual sequence, not a common-scale engineering model or a claim that these missions were connected in real life.
+
+## Rocket: SpaceX Starship / Super Heavy
+
+- [SpaceX Starship](https://new.spacex.com/vehicles/starship): two stages, 9 m vehicle diameter; official vehicle imagery is the visual reference.
+- [SpaceX June 2026 prospectus](https://content.spacex.com/cms-assets/FINAL_Documents%20and%20Updates/SpaceX%20-%20EU%20Prospectus%20%28Approved%20by%20Bafin%29%20-%20June%205%2C%202026.pdf): Starship overview states integrated height 124.4 m and diameter 9 m. Preserve its tall, slender silhouette; the booster accounts for approximately the lower three-fifths of the stack.
+- [SpaceX updates](https://new.spacex.com/updates): V3 booster grid fins reduced from four to three, each 50% larger. The version must be consistent: use three fins for a V3-inspired model; four fins are appropriate only for an earlier generation.
+- [NASA wind tunnel tests](https://www.nasa.gov/directorates/esdmd/artemis-campaign-development-division/human-landing-system-program/nasa-spacex-advance-wind-tunnel-tests-for-starship-rocket/): confirms the 33-engine Super Heavy booster and second-stage Starship.
+- Useful recognizable features: reflective steel cylindrical body with circumferential seams, tapered/rounded upper nose, dark heat-shield side on ship, upper and lower ship flaps, interstage band, grid fins near booster top, clustered nozzle bells below. Use geometry rather than external copyrighted photos as textures.
+- The rocket-to-satellite sequence is an artistic transition. Super Heavy is a booster and is not itself a satellite.
+
+## Satellite laser and optical receiver
+
+- [NASA LCOT and TBIRD](https://www.nasa.gov/technology/space-comms/space-communications/nasa-terminal-transmits-first-laser-communications-uplink-to-space/): optical ground terminal uses modified commercial telescope hardware; article provides photographs and downlink footage. Model a telescope tube on a two-axis gimbal/pier, with a dark optical aperture and secondary/support detail. Do not use an RF dish as the laser receiver.
+- [NASA LCRD](https://www.nasa.gov/goddard/esc/lcrd/): optical telescope laboratories receive infrared signals and turn them into data streams.
+- [NASA optical communications](https://www.nasa.gov/technology/space-comms/optical-communications-overview/): optical links require accurate telescope pointing. Aim both ends of the drawn beam at actual optical apertures.
+- A colored beam and traveling pulses are explanatory visualization: the real infrared link would not appear as a bright continuous visible line in space.
+
+## Birdman platform and aircraft
+
+- [Birdman contest organizer, YTV](https://www.ytv.co.jp/birdman/): self-built aircraft fly using human power and compete in distance.
+- [Osaka Institute of Technology team](https://www.oit.ac.jp/oit/overthelimit/oit-project/hpa/): platform 10 m above water, 10 m run-up, 3.5-degree incline, fan-shaped plan. Preserve the raised scaffold, repeated vertical posts, horizontal rails and diagonal bracing below its deck; assembly should connect members before takeoff.
+- [SOARA team's own description](https://www.soarahpa.com/birdman/): SOARA-X2 is a Lake Biwa-style glider; the team aims for glider division. Typical gliders span 15–25 m and weigh 30–45 kg. Use the user's existing glider geometry when available and do not invent a propeller on that glider.
+- [Tokyo University of Science TORICA 2026 aircraft](https://torica-tus.com/2026/09/03/2026/): 25.4 m span, 5.528 m length, high-aspect wings and winglets. Useful cross-check for glider proportions, not a substitute for the user's aircraft.
+- [OIT aircraft example](https://www.oit.ac.jp/oit/overthelimit/oit-project/hpa/): 33 m span, 8.5 m length, recumbent cockpit and one-blade propeller; useful only if rendering a powered human-powered aircraft instead of SOARA's glider.
+
+## Reused personal keyboard and hand data
+
+Source workspace:
+`C:/Users/hatto/Documents/Codex/2026-06-23/f-vs-code-python-kineticfit-3`
+
+- `personalized_keyboard_study/hands/self/outputs/keyboard_layout/keyboard_layout.json`: final personal 21-key curved layout. `modes.contour` gives per-key position, surface normal, tangent; cap dimensions 18 × 18 × 5 mm. Original placement, orientations and finger assignment retained in `keyboard-data.json`.
+- `.../hand_profile.json`: original measured 21 landmarks for open, pressure and fist states. This is a measured hand landmark rig, not a medical bone reconstruction.
+- `.../case/contour/case.stl` and `floor.stl`: copied unchanged to `keyboard-case.stl` and `keyboard-floor.stl`.
+- `work/hand-viewer-vinext/public/pa-.stl` and `sizen.stl`: existing hand surface scans. Exported as `hand-open.stl` and `hand-pressure.stl`, retaining all original triangles, after applying the exact original viewer centering and palm-local basis.
+- `prepare-keyboard.cjs` reproduces all copies/conversions. Alignment verification compares the transformed original viewer's 21 joints with the existing self hand profile; maximum residual < 0.000000000001 mm for both poses.
+
+Coordinate convention for all copied/converted keyboard and hand assets: millimeters; wrist at origin; +X towards middle-finger MCP, Y across palm, +Z toward palm side. Keys are below the palm in +Z, with their top normal mostly -Z. A useful Three.js Y-up mapping is `(x,y,z) -> (y,-z,-x)` followed by one shared scale and translation. Do not separately recenter the hand scan, skeleton, key positions or keyboard case. Skin can fade from the open scan to expose the same-pose landmark rig; interpolate the rig to pressure pose before revealing the matching keyboard.

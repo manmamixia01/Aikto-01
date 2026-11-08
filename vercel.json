@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/animation",
+      "destination": "/animation/index.html"
+    },
+    {
+      "source": "/animation/",
+      "destination": "/animation/index.html"
+    },
+    {
       "source": "/ar",
       "destination": "/ar/index.html"
     },

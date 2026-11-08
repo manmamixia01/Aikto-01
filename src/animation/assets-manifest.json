@@ -1,0 +1,130 @@
+{
+  "satellite": {
+    "source": "C:\\Users\\hatto\\Documents\\Codex\\2026-10-02\\ai\\outputs\\AI1_Starmind_v3_receiver.blend",
+    "file": "C:\\Users\\hatto\\Documents\\Codex\\2026-09-04\\mindar-x20\\work\\animation-assets\\satellite.glb",
+    "bytes": 4084388,
+    "source_bounds": [
+      [
+        -37.5,
+        -3.382376194000244,
+        -15.0
+      ],
+      [
+        37.5,
+        3.382376194000244,
+        15.0
+      ]
+    ],
+    "scale": 0.013333333333333334,
+    "normalized_dims_xyz_blender": [
+      1.0,
+      0.09019669890403748,
+      0.4000000059604645
+    ],
+    "normalized_dims_xyz_three": [
+      1.0,
+      0.4,
+      0.09019669850667318
+    ],
+    "grounded": false,
+    "objects": 5,
+    "vertices": 47064,
+    "orientation": "GLB Y up: Blender X→X, Z→Y, Y→-Z"
+  },
+  "receiver": {
+    "source": "C:\\Users\\hatto\\Documents\\Codex\\2026-10-02\\ai\\outputs\\AI1_Starmind_v3_receiver.blend",
+    "file": "C:\\Users\\hatto\\Documents\\Codex\\2026-09-04\\mindar-x20\\work\\animation-assets\\receiver.glb",
+    "bytes": 492328,
+    "source_bounds": [
+      [
+        -1.3600000143051147,
+        -0.04699993133544922,
+        -0.7300000190734863
+      ],
+      [
+        1.3600000143051147,
+        1.3007291555404663,
+        0.75
+      ]
+    ],
+    "scale": 0.3676470549564461,
+    "normalized_dims_xyz_blender": [
+      1.0,
+      0.49548861384391785,
+      0.5441176295280457
+    ],
+    "normalized_dims_xyz_three": [
+      1.0,
+      0.5441176483478514,
+      0.49548862966907065
+    ],
+    "grounded": false,
+    "objects": 1,
+    "vertices": 4484,
+    "orientation": "GLB Y up: Blender X→X, Z→Y, Y→-Z"
+  },
+  "platform": {
+    "source": "C:\\Users\\hatto\\Documents\\Codex\\2026-08-02\\f-2026-7-26-soara\\outputs\\birdman_platform_2026_1-100.blend",
+    "file": "C:\\Users\\hatto\\Documents\\Codex\\2026-09-04\\mindar-x20\\work\\animation-assets\\platform.glb",
+    "bytes": 1424908,
+    "source_bounds": [
+      [
+        -0.15771999955177307,
+        -0.07364115864038467,
+        0.000999998301267624
+      ],
+      [
+        0.06582000106573105,
+        0.07364115864038467,
+        0.16499999165534973
+      ]
+    ],
+    "scale": 4.473472147748268,
+    "normalized_dims_xyz_blender": [
+      1.0,
+      0.658863365650177,
+      0.7336493730545044
+    ],
+    "normalized_dims_xyz_three": [
+      1.0,
+      0.733649385835405,
+      0.6588633442113451
+    ],
+    "grounded": true,
+    "objects": 28,
+    "vertices": 16952,
+    "orientation": "GLB Y up: Blender X→X, Z→Y, Y→-Z"
+  },
+  "aircraft": {
+    "source": "C:\\Users\\hatto\\Documents\\Codex\\2026-09-04\\mindar-x20\\work\\animation-assets\\aircraft-raw.blend",
+    "file": "C:\\Users\\hatto\\Documents\\Codex\\2026-09-04\\mindar-x20\\work\\animation-assets\\aircraft.glb",
+    "bytes": 1113720,
+    "source_bounds": [
+      [
+        -1169.6663818359375,
+        -284.9517517089844,
+        -75.03514099121094
+      ],
+      [
+        1170.3653564453125,
+        393.2917175292969,
+        198.10418701171875
+      ]
+    ],
+    "scale": 0.00042734463111790893,
+    "normalized_dims_xyz_blender": [
+      1.0,
+      0.28984370827674866,
+      0.11672463268041611
+    ],
+    "normalized_dims_xyz_three": [
+      1.0,
+      0.11672463188996711,
+      0.2898437051697641
+    ],
+    "grounded": false,
+    "objects": 1,
+    "vertices": 13654,
+    "orientation": "GLB Y up: Blender X→X, Z→Y, Y→-Z"
+  }
+}
