@@ -55,6 +55,7 @@
 
     <script type="module">
       import * as THREE from "three";
+      import { createFlightAnimation } from "/ar/flight.js";
       import { MindARThree } from "mindar-image-three";
       import { Controller } from "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js";
 
@@ -157,44 +158,13 @@
           targetGlow.renderOrder = 1;
           root.add(targetGlow);
 
-          const pedestal = new THREE.Mesh(
-            new THREE.CylinderGeometry(.18, .24, .055, 48),
-            new THREE.MeshBasicMaterial({ color: 0x123f2b })
-          );
-          pedestal.rotation.x = Math.PI / 2;
-          pedestal.position.z = .075;
-          root.add(pedestal);
-
-          const crystal = new THREE.Mesh(
-            new THREE.IcosahedronGeometry(.19, 1),
-            new THREE.MeshNormalMaterial({ flatShading: true })
-          );
-          crystal.position.z = .29;
-          root.add(crystal);
-
-          const rings = new THREE.Group();
-          rings.position.z = .23;
-          root.add(rings);
-          [0, 1, 2].forEach((index) => {
-            const ring = new THREE.Mesh(
-              new THREE.TorusGeometry(.25 + index * .045, .007, 10, 64),
-              new THREE.MeshBasicMaterial({ color: index === 1 ? 0xffffff : 0x74f2b7, transparent: true, opacity: .74 - index * .12 })
-            );
-            ring.rotation.set(Math.PI / 2 + index * .35, index * .48, index * .2);
-            rings.add(ring);
-          });
-
-          const particles = new THREE.Group();
-          root.add(particles);
-          for (let i = 0; i < 9; i++) {
-            const particle = new THREE.Mesh(new THREE.SphereGeometry(.009, 10, 10), new THREE.MeshBasicMaterial({ color: i % 2 ? 0xffffff : 0x74f2b7 }));
-            const angle = i / 9 * Math.PI * 2;
-            particle.userData = { angle, radius: .23 + (i % 3) * .055, speed: .32 + (i % 4) * .07 };
-            particles.add(particle);
-          }
-
-          anchor.onTargetFound = () => setState("tracking", "TRACKING · 3D ACTIVE");
-          anchor.onTargetLost = () => setState("searching", "SEARCHING");
+          setState("searching", "LOADING 3D");
+          const flight = await createFlightAnimation(root, ratio);
+          flight.update(0);
+          let flightTime = 0;
+          let tracked = false;
+          anchor.onTargetFound = () => { flightTime = 0; tracked = true; setState("tracking", "TRACKING · FLIGHT ACTIVE"); };
+          anchor.onTargetLost = () => { tracked = false; setState("searching", "SEARCHING"); };
 
           // MindAR 1.2.5 wraps async startup in a Promise constructor. If target
           // loading or warmup rejects, the upstream promise can remain pending.
@@ -279,17 +249,8 @@
           setState("searching", "SEARCHING");
           const clock = new THREE.Clock();
           renderer.setAnimationLoop(() => {
-            const t = clock.getElapsedTime();
-            crystal.rotation.z = t * .55;
-            crystal.rotation.y = t * .8;
-            crystal.position.z = .29 + Math.sin(t * 2) * .018;
-            rings.rotation.z = t * .22;
-            rings.children.forEach((ring, i) => { ring.rotation.y += .003 + i * .0015; });
-            particles.children.forEach((particle) => {
-              const d = particle.userData;
-              const a = d.angle + t * d.speed;
-              particle.position.set(Math.cos(a) * d.radius, Math.sin(a) * d.radius * .55, .18 + Math.sin(a * 2 + t) * .12);
-            });
+            const delta = Math.min(clock.getDelta(), .1);
+            if (tracked) { flightTime += delta; flight.update(flightTime); }
             renderer.render(scene, camera);
           });
         } catch (error) {
