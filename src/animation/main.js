@@ -1,3 +1,4 @@
+import { createLunarPortal } from './lunar-portal.js';
 import { createStarshipSequence } from './starship.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -37,6 +38,7 @@ function label(text,parent,position,size=.19,color='#a2b5bd'){
 }
 let renderer;
 try {renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});}catch(err){$('loading').hidden=true;$('error').hidden=false;$('error').textContent='3D表示を開始できませんでした。ブラウザのハードウェアアクセラレーションを有効にして再読み込みしてください。';throw err;}
+renderer.localClippingEnabled=true;
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;$('viewport').appendChild(renderer.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color('#090e15');scene.fog=new THREE.FogExp2('#090e15',.018);
 const camera=new THREE.PerspectiveCamera(35,1,.1,90);camera.position.set(11,9,14);
@@ -47,20 +49,16 @@ const key=new THREE.DirectionalLight('#fff1d9',2.6);key.position.set(-4,10,6);ke
 const rim=new THREE.DirectionalLight('#72d9ff',1.7);rim.position.set(5,5,-7);scene.add(rim);
 const fill=new THREE.PointLight('#ffb461',8,14,2);fill.position.set(-4,1,3);scene.add(fill);
 const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));const bloom=new UnrealBloomPass(new THREE.Vector2(1,1),.22,.4,3.0);composer.addPass(bloom);composer.addPass(new OutputPass());
-const ground=mesh(new THREE.PlaneGeometry(200,200),material('#0b111b',.2,.72),scene,V(0,-.14,0));ground.rotation.x=-Math.PI/2;ground.castShadow=false;
-const card=group(scene);box(card,[9.1,.09,5.5],[0,-.045,0],material('#17212c',.48,.36),.045);
-line([V(-4.55,.014,-2.75),V(4.55,.014,-2.75),V(4.55,.014,2.75),V(-4.55,.014,2.75),V(-4.55,.014,-2.75)],'#b6d4d8',card,.7);
-for(let x=-4;x<=4;x+=.5)line([V(x,.008,-2.5),V(x,.008,2.5)],'#30434f',card,.18);
-for(let z=-2.5;z<=2.5;z+=.5)line([V(-4,.008,z),V(4,.008,z)],'#30434f',card,.18);
-for(const x of [-4.35,4.35])for(const z of [-2.55,2.55]){line([V(x-.07,.02,z),V(x+.07,.02,z)],'#b8cace',card);line([V(x,.02,z-.07),V(x,.02,z+.07)],'#b8cace',card);}
+const lunar=createLunarPortal(scene),card=lunar.card;
 label('91 mm',card,V(0,.04,3.03),.19);label('55 mm',card,V(-4.95,.04,0),.19);label('AKITO  /  01',card,V(3.4,.06,2.4),.12);
 
 const launchSequence=createStarshipSequence(scene);
 
-const orbital=group(scene), satellite=group(orbital), receiver=group(orbital);
-const laser=group(orbital);const laserCore=rod(laser,V(),V(1,1,0),.014,material('#a4fdff',0,.2,4));const laserHalo=rod(laser,V(),V(1,1,0),.045,material('#48cfff',0,.3,1));laserHalo.material.transparent=true;laserHalo.material.opacity=.12;laserHalo.material.depthWrite=false;
-const receiveGlow=sphere(receiver,.10,[0,.48,0],cyan);
-const receiveRings=[];for(let i=0;i<3;i++){const ring=mesh(new THREE.TorusGeometry(.3,.009,8,64),cyan,orbital);ring.rotation.x=-Math.PI/2;receiveRings.push(ring);}
+const orbital=group(scene), satellite=group(orbital);
+const laser=group(orbital);
+const laserCore=rod(laser,V(),V(1,1,0),.014,material('#ff731c',0,.25,2));
+const laserHalo=rod(laser,V(),V(1,1,0),.042,material('#ff6817',0,.5,.6));laserHalo.material.transparent=true;laserHalo.material.opacity=.17;laserHalo.material.depthWrite=false;
+let aperture=V(.1,0,0);
 // A travelling light carries the narrative across every scene transition.
 const connector=group(scene), spark=sphere(connector,.07,[0,0,0],material('#b8ffff',0,.15,4));
 const pathPoints=[V(2,.5,0),V(2.3,1.4,.2),V(0,2.6,.4),V(-1,1.8,0),V(0,.4,0)];
@@ -93,11 +91,11 @@ const waves=[];for(let i=0;i<24;i++){const points=[];for(let j=0;j<24;j++)points
 const flightTrail=group(birdman);const flightLine=line(Array.from({length:100},()=>V()),'#9cd6dc',flightTrail,.35);
 const loader=new GLTFLoader();
 async function loadGLB(file,parent,width){const gltf=await loader.loadAsync(`/animation/assets/${file}`);const model=gltf.scene;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();}});const bounds=new THREE.Box3().setFromObject(model);const size=bounds.getSize(V()),center=bounds.getCenter(V());model.position.sub(center);const wrap=group(parent);wrap.add(model);wrap.scale.setScalar(width/Math.max(size.x,size.y,size.z));wrap.userData.originalSize=size;return wrap;}
-let platformModel,planeModel,satelliteModel,receiverModel,caseModel;
+let platformModel,planeModel,satelliteModel,caseModel;
 async function init(){
   const data=await (await fetch('/animation/assets/keyboard-data.json')).json();buildHandAndKeys(data);
-  [satelliteModel,receiverModel,platformModel,planeModel]=await Promise.all([
-    loadGLB('satellite.glb',satellite,3.3),loadGLB('receiver.glb',receiver,1.2),loadGLB('platform.glb',platform,4.3),loadGLB('aircraft.glb',plane,6.8)
+  [satelliteModel,platformModel,planeModel]=await Promise.all([
+    loadGLB('transmitter.glb',satellite,4.8),loadGLB('platform.glb',platform,4.3),loadGLB('aircraft.glb',plane,6.8)
   ]);
   const [caseGeometry,handGeometry]=await Promise.all([new STLLoader().loadAsync('/animation/assets/keyboard-case.stl'),new STLLoader().loadAsync('/animation/assets/hand-open.stl')]);
   for(const geometry of [caseGeometry,handGeometry]){const p=geometry.getAttribute('position');for(let i=0;i<p.count;i++){const v=mapPoint([p.getX(i),p.getY(i),p.getZ(i)]);p.setXYZ(i,v.x,v.y,v.z);}geometry.computeVertexNormals();}
@@ -105,14 +103,15 @@ async function init(){
   skin.clear();skinBones=[];mesh(handGeometry,material('#c6b3a3',.03,.48),skin);
   // Converted assets are centered and upright. Keep the platform deck at a readable scale.
   platform.position.set(-1.9,0,-.05);const platformBox=new THREE.Box3().setFromObject(platformModel);platformModel.position.y-=platformBox.min.y;
-  receiverModel.position.y=.38;receiveGlow.position.y=.85;
+  aperture.fromArray((await (await fetch('/animation/assets/transmitter.json')).json()).aperture);
+  aperture.multiplyScalar(satelliteModel.scale.x);
   $('loading').hidden=true;ready=true;seek(Number(new URL(location.href).searchParams.get('t'))||0);if(new URL(location.href).searchParams.has('paused'))playing=false;syncPlay();
   window.animationPreview={seek, setPlaying:value=>{playing=value;syncPlay();},getState:()=>({time,ready,playing,autoCamera,assets:4,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),duration:DURATION};
 }
 let time=0,playing=!matchMedia('(prefers-reduced-motion: reduce)').matches,ready=false,autoCamera=true,last=performance.now();
 const chapters=[
  {start:0,title:'重力の、その先へ。',description:'SUPER HEAVY → STARSHIP',label:'打ち上げ'},
- {start:10,title:'宇宙から、エネルギーを。',description:'AI1 STARMIND / LASER TRANSMISSION',label:'衛星・受光'},
+ {start:10,title:'月へ、エネルギーを。',description:'HELIOS N1 / LUNAR POWER TRANSMISSION',label:'衛星・受光'},
  {start:22,title:'手の動きを、かたちに。',description:'HAND → SKELETON',label:'手・骨格'},
  {start:32,title:'あなたの手から、生まれる。',description:'KINETICFIT / PERSONALIZED KEYBOARD',label:'キーボード'},
  {start:42,title:'飛び立つための、構造。',description:'BIRDMAN / PLATFORM ASSEMBLY',label:'足場'},
@@ -122,10 +121,25 @@ let chapterIndex=-1;
 function update(t){
   const c=chapters.findLastIndex(c=>t>=c.start);if(c!==chapterIndex){chapterIndex=c;$('chapter-number').textContent=`0${c+1} / 06`;$('chapter-title').textContent=chapters[c].title;$('chapter-description').textContent=chapters[c].description;document.querySelectorAll('[data-time]').forEach((b,i)=>{b.classList.toggle('active',i===c);b.setAttribute('aria-current',i===c?'step':'false');});}
   launchSequence.update(t);
-  alpha(orbital,windowAt(t,9,11.4,21,24));satellite.position.set(lerp(2,-1.8,ease(9.5,14,t)),3.55+Math.sin(t*.7)*.08,-.45);satellite.rotation.set(.12,Math.sin(t*.2)*.15-.25,.12);satellite.scale.setScalar(lerp(.35,1,ease(9.2,12,t)));
-  receiver.position.set(2.1,.03,.3);receiver.scale.setScalar(ease(12,14,t));
-  const source=satellite.position.clone().add(V(.28,-.3,.15)),destination=receiver.position.clone().add(V(0,.85,0));orientRod(laserCore,source,source.clone().lerp(destination,ease(14,15.3,t)));orientRod(laserHalo,source,destination);alpha(laser,windowAt(t,14,14.4,21,22.7));
-  for(let i=0;i<receiveRings.length;i++){const phase=((t-15)*.6+i/3)%1;receiveRings[i].position.copy(destination).setY(.08);receiveRings[i].scale.setScalar(1+phase*3);alpha(receiveRings[i],windowAt(t,15,16,21,23)*(1-phase)*.6);}
+  lunar.update(t);
+  alpha(orbital,windowAt(t,9.8,11.6,21,23));
+  const emerge=ease(9.8,12.4,t),travel=ease(11.2,14.3,t);
+  // Begin inside the upper-stage center, then drift to the transmitting position.
+  const payloadCenter=launchSequence.ship.localToWorld(V(0,.9,0));
+  satellite.position.copy(payloadCenter).lerp(V(-1.35,2.7,-.4),travel);
+  satellite.scale.setScalar(lerp(.035,1,emerge));
+  scene.updateMatrixWorld(true);
+  const destination=lunar.target.getWorldPosition(V());
+  const forward=destination.clone().sub(satellite.position).normalize();
+  const wing=V(0,0,1).addScaledVector(forward,-forward.z).normalize();
+  const normal=new THREE.Vector3().crossVectors(forward,wing).normalize();
+  satellite.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(forward,wing,normal));
+  satellite.rotateX(.4);
+  satellite.updateMatrixWorld(true);
+  const source=satellite.localToWorld(aperture.clone());
+  const endpoint=source.clone().lerp(destination,ease(15.2,16.6,t));
+  orientRod(laserCore,source,endpoint);orientRod(laserHalo,source,endpoint);
+  alpha(laser,windowAt(t,15.2,15.6,20.5,21.3));
   const bridge=windowAt(t,20,21.3,25,26.5);alpha(connector,bridge);spark.position.copy(curve.getPoint(ease(20.5,24.5,t)));trail.geometry.setDrawRange(0,Math.floor(ease(20.5,24,t)*600)*8);
   alpha(kinetic,windowAt(t,22,24,40.5,43));kinetic.position.set(0,ease(40,43,t)*-.8,0);kinetic.rotation.y=lerp(-.2,.17,ease(23,41,t));animateHand(t);
   alpha(skin,1-ease(26.5,29.5,t));alpha(skeleton,windowAt(t,26,28,37.5,40));

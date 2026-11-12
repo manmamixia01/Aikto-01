@@ -12,12 +12,14 @@ Checked 2026-11-08. The animation is a miniature visual sequence, not a common-s
 - The rocket-to-satellite sequence is an artistic transition. Super Heavy is a booster and is not itself a satellite.
 - Opening revised 2026-11-12: model includes open hot-stage vents, lattice grid fins, heat-shield tile faces and clustered nozzle bells. The tower sinks below the card by 4.3 s; pitching starts at 4.5 s, then stage separation at 6.8 s. The descending tower and compact trajectory are deliberate miniature staging, not a flight simulation.
 
-## Satellite laser and optical receiver
+## HELIOS N1 transmitter and lunar portal (2026-11-12)
 
-- [NASA LCOT and TBIRD](https://www.nasa.gov/technology/space-comms/space-communications/nasa-terminal-transmits-first-laser-communications-uplink-to-space/): optical ground terminal uses modified commercial telescope hardware; article provides photographs and downlink footage. Model a telescope tube on a two-axis gimbal/pier, with a dark optical aperture and secondary/support detail. Do not use an RF dish as the laser receiver.
-- [NASA LCRD](https://www.nasa.gov/goddard/esc/lcrd/): optical telescope laboratories receive infrared signals and turn them into data streams.
-- [NASA optical communications](https://www.nasa.gov/technology/space-comms/optical-communications-overview/): optical links require accurate telescope pointing. Aim both ends of the drawn beam at actual optical apertures.
-- A colored beam and traveling pulses are explanatory visualization: the real infrared link would not appear as a bright continuous visible line in space.
+- Replaced the AI1 receiver model with the existing gold-sided HELIOS N1 transmitter from the user's PROMETHEUS PV workspace: transmitter_model_hardware_v1/helios_n1_hardware_v1.blend.
+- Its source model includes 16 optical heads, four solar-array panels, radiators, gold side skins, equipment boxes and harnesses. scripts/export-transmitter.py retains its material families (with warmer gold for browser readability), bakes modifiers, consolidates meshes, and reduces detail for the browser. The source Blender file is not modified.
+- Optical output is Blender +X; the export metadata records its normalized aperture position so the orange beam joins the actual emitting face to the lunar receiver face.
+- [NASA lunar surface sustainability concept](https://www.nasa.gov/general/nasa-outlines-lunar-surface-sustainability-concept/): habitat, mobility and supporting surface infrastructure inform the newly modeled pressure modules, airlock and rover. This is an artistic base layout, not an existing installation.
+- [NASA lunar regolith](https://science.nasa.gov/biological-physical/what-is-lunar-regolith/): terrain inspiration. Seeded crater bowls, rims and scattered rocks are generated geometry, not survey data.
+- Upper-stage expansion and transparency, sliding card doors, and visible orange laser light are narrative effects. The foreground plane has a rectangular opening and the larger lunar landscape sits beneath it, creating actual parallax when the viewer rotates the scene.
 
 ## Birdman platform and aircraft
 

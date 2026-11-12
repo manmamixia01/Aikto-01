@@ -91,20 +91,26 @@ export function createStarshipSequence(parent){
   // These are shared rigid-body transforms until the separation moment.
   const rotation=new THREE.Quaternion(),joint=V(),boosterCenter=V();
   function update(t){
-    fade(root,ease(0,.65,t)*(1-ease(9.5,11.2,t)));
+    fade(root,ease(0,.65,t)*(1-ease(11.8,12.3,t)));
     const rise=ease(.7,4.5,t),lean=ease(4.5,8.9,t),separation=ease(6.8,9.5,t);
     rotation.setFromAxisAngle(V(0,0,1),-lean*Math.PI*.43);
     const center=V(-.12+ease(5,9.5,t)*.65,2.12+rise*.78,0);
     joint.copy(V(0,.75,0)).applyQuaternion(rotation).add(center);
     boosterCenter.copy(V(0,-.72,0)).applyQuaternion(rotation).add(center);
     ship.position.copy(joint).add(V(separation*1.05,separation*.2,0));ship.quaternion.copy(rotation);ship.rotateY(-.4);
+    // Expand around the upper-stage body center, leaving space for the payload reveal.
+    const expansion=1+ease(9,12.2,t)*1.45;
+    ship.scale.setScalar(expansion);
+    ship.position.sub(V(0,.9*(expansion-1),0).applyQuaternion(ship.quaternion));
+    fade(ship,1-ease(9.15,11.7,t));
     booster.position.copy(boosterCenter).add(V(-separation*.65,-separation*1.35,separation*.12));
     booster.quaternion.copy(rotation);booster.rotateZ(separation*.24);
+    fade(booster,1-ease(8.9,10.15,t));
     pad.position.y=-4.7*ease(.9,4.3,t);pad.visible=t<4.3;
     catchArms.scale.z=1+ease(.5,2,t)*.35;
     fade(boosterFlame,ease(.5,1.1,t)*(1-ease(6.5,7.2,t)));
     boosterFlame.scale.set(1+Math.sin(t*43)*.025,.65+rise*.35+Math.sin(t*34)*.035,1);
-    fade(shipFlame,ease(6.6,7.2,t));shipFlame.scale.y=.8+Math.sin(t*39)*.04;
+    fade(shipFlame,ease(6.6,7.2,t)*(1-ease(9,9.8,t)));shipFlame.scale.y=.8+Math.sin(t*39)*.04;
     for(let i=0;i<puffs.length;i++){
       const age=(t*.38+i/24)%1,a=i*2.39996,p=puffs[i];
       p.position.set(Math.cos(a)*age*1.2,.1+age*.15,Math.sin(a)*age*.85);

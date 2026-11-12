@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import * as THREE from 'three';
+import {createStarshipSequence} from '../src/animation/starship.js';
+import {createLunarPortal} from '../src/animation/lunar-portal.js';
+
+const scene=new THREE.Scene(),launch=createStarshipSequence(scene),portal=createLunarPortal(scene);
+const V=(...v)=>new THREE.Vector3(...v);
+const surface=scene.children.find(o=>o.geometry?.type==='ShapeGeometry');
+scene.updateMatrixWorld(true);
+const ray=new THREE.Raycaster(V(0,5,0),V(0,-1,0));
+assert.equal(ray.intersectObject(surface).length,0,'the card has a real opening');
+ray.set(V(7,5,0),V(0,-1,0));assert.ok(ray.intersectObject(surface).length,'foreground hides terrain outside the opening');
+portal.update(0);assert.equal(portal.world.visible,false);assert.equal(Math.abs(portal.doors[0].position.x),0);
+portal.update(13.5);assert.ok(portal.doors[0].position.x<0&&portal.doors[1].position.x>0,'doors move apart');
+portal.update(18);assert.ok(Math.abs(portal.doors[0].position.x)>=4.55,'doors clear the whole aperture');
+scene.updateMatrixWorld(true);const target=portal.target.getWorldPosition(V());
+assert.ok(target.y<0&&Math.abs(target.x)<4.55&&Math.abs(target.z)<2.75,'receiver is inside the hole');
+portal.update(24);assert.equal(portal.world.visible,false);assert.equal(portal.doors[1].position.x,0,'card restores for next chapter');
+launch.update(9);const before=launch.ship.scale.x;
+launch.update(11);assert.ok(launch.ship.scale.x>before*1.5,'upper stage grows');assert.ok(launch.ship.userData.fade<.5,'upper stage fades as payload emerges');
+launch.update(12);assert.equal(launch.ship.visible,false);
+const snapshot=()=>JSON.stringify([launch.ship.position,launch.ship.scale,launch.ship.quaternion,portal.doors.map(d=>d.position),portal.world.visible]);
+launch.update(11);portal.update(18);const expected=snapshot();launch.update(2);portal.update(0);launch.update(11);portal.update(18);assert.equal(snapshot(),expected,'backward seeking reproduces the scene');
+for(let t=0;t<64;t+=.2){launch.update(t);portal.update(t);scene.updateMatrixWorld(true);scene.traverse(o=>assert.ok(o.matrixWorld.elements.every(Number.isFinite),'finite transforms throughout loop'));}
+const bytes=fs.readFileSync(new URL('../public/animation/assets/transmitter.glb',import.meta.url));
+const json=JSON.parse(bytes.toString('utf8',20,20+bytes.readUInt32LE(12)));
+const gold=json.materials.find(m=>m.name.includes('ochre'))?.pbrMetallicRoughness?.baseColorFactor;
+assert.ok(gold&&gold[0]>gold[1]&&gold[1]>gold[2],'GLB contains the gold bus material');
+assert.ok(bytes.length<12_000_000,'transmitter payload fits the web budget');
+console.log('PASS: portal opening, door order, recessed receiver, restored card, expanding/fading stage, deterministic scrub, finite transforms and gold GLB.');
