@@ -1,3 +1,4 @@
+import { createStarshipSequence } from './starship.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -54,24 +55,7 @@ for(let z=-2.5;z<=2.5;z+=.5)line([V(-4,.008,z),V(4,.008,z)],'#30434f',card,.18);
 for(const x of [-4.35,4.35])for(const z of [-2.55,2.55]){line([V(x-.07,.02,z),V(x+.07,.02,z)],'#b8cace',card);line([V(x,.02,z-.07),V(x,.02,z+.07)],'#b8cace',card);}
 label('91 mm',card,V(0,.04,3.03),.19);label('55 mm',card,V(-4.95,.04,0),.19);label('AKITO  /  01',card,V(3.4,.06,2.4),.12);
 
-// A visibly recognizable Starship / Super Heavy stack, scaled as a miniature.
-const launch=group(scene), booster=group(launch), ship=group(launch), pad=group(launch);
-cylinder(booster,.18,.18,2.55,[0,1.54,0]);cylinder(booster,.19,.19,.12,[0,2.86,0],dark);
-for(let y=.4;y<2.8;y+=.17){const ring=mesh(new THREE.TorusGeometry(.181,.004,4,48),silver,booster,V(0,y,0));ring.rotation.x=Math.PI/2;}
-for(let i=0;i<3;i++){const a=i*Math.PI*2/3;const fin=box(booster,[.21,.035,.17],[Math.cos(a)*.23,2.57,Math.sin(a)*.23],dark);fin.rotation.y=-a;for(let j=-2;j<=2;j++)box(fin,[.008,.012,.18],[j*.034,.025,0],silver);}
-for(let i=0;i<33;i++){const a=i*2.39996,r=.145*Math.sqrt(i/32);cylinder(booster,.018,.027,.07,[Math.cos(a)*r,.23,Math.sin(a)*r],dark,10);}
-cylinder(ship,.18,.18,1.25,[0,3.53,0]);
-const nose=mesh(new THREE.LatheGeometry([new THREE.Vector2(.18,0),new THREE.Vector2(.174,.12),new THREE.Vector2(.146,.27),new THREE.Vector2(.095,.43),new THREE.Vector2(.035,.56),new THREE.Vector2(0,.59)],40),silver,ship,V(0,4.155,0));
-const heatshield=mesh(new THREE.CylinderGeometry(.181,.181,1.25,32,1,false,0,Math.PI),dark,ship,V(0,3.53,0));
-for(const side of [-1,1]){const fin=box(ship,[.22,.44,.035],[side*.23,3.13,0],silver);fin.rotation.z=side*-.25;const front=box(ship,[.12,.25,.025],[side*.18,4.18,0],dark);front.rotation.z=side*.23;}
-cylinder(pad,.48,.55,.21,[0,.13,0],dark);for(let i=0;i<6;i++){const a=i*Math.PI/3;rod(pad,V(Math.cos(a)*.4,.25,Math.sin(a)*.4),V(Math.cos(a)*.52,.03,Math.sin(a)*.52),.035,silver);}
-// Service tower with actual truss-like framing and two catch arms.
-for(let y=.2;y<4.2;y+=.36){for(const z of [-.25,.25]){rod(pad,V(-.9,y,z),V(-.5,y+.36,z),.018,silver);rod(pad,V(-.5,y,z),V(-.9,y+.36,z),.018,silver);}box(pad,[.45,.025,.52],[-.7,y,0],dark);}
-for(const x of [-.9,-.5])for(const z of [-.25,.25])rod(pad,V(x,0,z),V(x,4.2,z),.027,silver);
-for(const z of [-.29,.29])box(pad,[.7,.06,.05],[-.35,2.7,z],silver);
-const flame=group(launch);const flameOuter=mesh(new THREE.ConeGeometry(.19,1.5,24),amber,flame,V(0,-.5,0));flameOuter.rotation.z=Math.PI;const core=mesh(new THREE.ConeGeometry(.09,1.05,20),material('#d8f6ff',0,.2,5),flame,V(0,-.3,0));core.rotation.z=Math.PI;
-const smoke=group(launch);const smokePuffs=[];for(let i=0;i<28;i++){const p=sphere(smoke,.15,[0,.1,0],material('#a7b4bc',0,1));p.userData.seed=i;smokePuffs.push(p);}
-launch.position.set(-1.5,0,0);
+const launchSequence=createStarshipSequence(scene);
 
 const orbital=group(scene), satellite=group(orbital), receiver=group(orbital);
 const laser=group(orbital);const laserCore=rod(laser,V(),V(1,1,0),.014,material('#a4fdff',0,.2,4));const laserHalo=rod(laser,V(),V(1,1,0),.045,material('#48cfff',0,.3,1));laserHalo.material.transparent=true;laserHalo.material.opacity=.12;laserHalo.material.depthWrite=false;
@@ -137,11 +121,8 @@ const chapters=[
 let chapterIndex=-1;
 function update(t){
   const c=chapters.findLastIndex(c=>t>=c.start);if(c!==chapterIndex){chapterIndex=c;$('chapter-number').textContent=`0${c+1} / 06`;$('chapter-title').textContent=chapters[c].title;$('chapter-description').textContent=chapters[c].description;document.querySelectorAll('[data-time]').forEach((b,i)=>{b.classList.toggle('active',i===c);b.setAttribute('aria-current',i===c?'step':'false');});}
-  const liftoff=ease(2.5,8,t);alpha(launch,ease(0,1,t)*(1-ease(9.4,11.2,t)));launch.scale.setScalar(1-ease(9,11,t)*.55);launch.position.y=0;
-  booster.position.y=liftoff*1.25-ease(7.4,10,t)*2.5;ship.position.y=liftoff*1.25+ease(7.4,11,t)*1.2;ship.rotation.z=-ease(6.5,11,t)*.25;booster.rotation.z=ease(7.5,11,t)*-.08;
-  alpha(flame,windowAt(t,.8,2,8.5,10));flame.position.y=.3+liftoff*1.25;flame.scale.set(1+Math.sin(t*41)*.08,.6+liftoff*.5+Math.sin(t*37)*.07,1);
-  for(let i=0;i<smokePuffs.length;i++){const p=smokePuffs[i],age=(t*.7+i/28)%1,angle=i*2.4;p.position.set(Math.cos(angle)*age*1.8,.08+age*.3,Math.sin(angle)*age*1.4);p.scale.setScalar(.4+age*2.8);alpha(p,windowAt(t,.7,2.6,7.5,10)*(1-age)*.45);}
-  alpha(orbital,windowAt(t,9,11.4,21,24));satellite.position.set(lerp(-1.5,-1.8,ease(10,14,t)),3.55+Math.sin(t*.7)*.08,-.45);satellite.rotation.set(.12,Math.sin(t*.2)*.15-.25,.12);satellite.scale.setScalar(lerp(.35,1,ease(9.2,12,t)));
+  launchSequence.update(t);
+  alpha(orbital,windowAt(t,9,11.4,21,24));satellite.position.set(lerp(2,-1.8,ease(9.5,14,t)),3.55+Math.sin(t*.7)*.08,-.45);satellite.rotation.set(.12,Math.sin(t*.2)*.15-.25,.12);satellite.scale.setScalar(lerp(.35,1,ease(9.2,12,t)));
   receiver.position.set(2.1,.03,.3);receiver.scale.setScalar(ease(12,14,t));
   const source=satellite.position.clone().add(V(.28,-.3,.15)),destination=receiver.position.clone().add(V(0,.85,0));orientRod(laserCore,source,source.clone().lerp(destination,ease(14,15.3,t)));orientRod(laserHalo,source,destination);alpha(laser,windowAt(t,14,14.4,21,22.7));
   for(let i=0;i<receiveRings.length;i++){const phase=((t-15)*.6+i/3)%1;receiveRings[i].position.copy(destination).setY(.08);receiveRings[i].scale.setScalar(1+phase*3);alpha(receiveRings[i],windowAt(t,15,16,21,23)*(1-phase)*.6);}

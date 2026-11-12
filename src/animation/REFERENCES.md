@@ -10,6 +10,7 @@ Checked 2026-11-08. The animation is a miniature visual sequence, not a common-s
 - [NASA wind tunnel tests](https://www.nasa.gov/directorates/esdmd/artemis-campaign-development-division/human-landing-system-program/nasa-spacex-advance-wind-tunnel-tests-for-starship-rocket/): confirms the 33-engine Super Heavy booster and second-stage Starship.
 - Useful recognizable features: reflective steel cylindrical body with circumferential seams, tapered/rounded upper nose, dark heat-shield side on ship, upper and lower ship flaps, interstage band, grid fins near booster top, clustered nozzle bells below. Use geometry rather than external copyrighted photos as textures.
 - The rocket-to-satellite sequence is an artistic transition. Super Heavy is a booster and is not itself a satellite.
+- Opening revised 2026-11-12: model includes open hot-stage vents, lattice grid fins, heat-shield tile faces and clustered nozzle bells. The tower sinks below the card by 4.3 s; pitching starts at 4.5 s, then stage separation at 6.8 s. The descending tower and compact trajectory are deliberate miniature staging, not a flight simulation.
 
 ## Satellite laser and optical receiver
 
