@@ -104,8 +104,10 @@ export function createStarshipSequence(parent){
     ship.position.sub(V(0,.9*(expansion-1),0).applyQuaternion(ship.quaternion));
     fade(ship,1-ease(9.15,11.7,t));
     booster.position.copy(boosterCenter).add(V(-separation*.65,-separation*1.35,separation*.12));
+    // Keep the detached stage solid as it falls through the card, like the tower.
+    booster.position.y-=3.1*ease(8.3,10.6,t);
     booster.quaternion.copy(rotation);booster.rotateZ(separation*.24);
-    fade(booster,1-ease(8.9,10.15,t));
+    fade(booster,1-ease(10.7,11,t));
     pad.position.y=-4.7*ease(.9,4.3,t);pad.visible=t<4.3;
     catchArms.scale.z=1+ease(.5,2,t)*.35;
     fade(boosterFlame,ease(.5,1.1,t)*(1-ease(6.5,7.2,t)));

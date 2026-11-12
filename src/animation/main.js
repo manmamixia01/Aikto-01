@@ -95,7 +95,7 @@ let platformModel,planeModel,satelliteModel,caseModel;
 async function init(){
   const data=await (await fetch('/animation/assets/keyboard-data.json')).json();buildHandAndKeys(data);
   [satelliteModel,platformModel,planeModel]=await Promise.all([
-    loadGLB('transmitter.glb',satellite,4.8),loadGLB('platform.glb',platform,4.3),loadGLB('aircraft.glb',plane,6.8)
+    loadGLB('transmitter.glb',satellite,6.8),loadGLB('platform.glb',platform,4.3),loadGLB('aircraft.glb',plane,6.8)
   ]);
   const [caseGeometry,handGeometry]=await Promise.all([new STLLoader().loadAsync('/animation/assets/keyboard-case.stl'),new STLLoader().loadAsync('/animation/assets/hand-open.stl')]);
   for(const geometry of [caseGeometry,handGeometry]){const p=geometry.getAttribute('position');for(let i=0;i<p.count;i++){const v=mapPoint([p.getX(i),p.getY(i),p.getZ(i)]);p.setXYZ(i,v.x,v.y,v.z);}geometry.computeVertexNormals();}
@@ -126,7 +126,8 @@ function update(t){
   const emerge=ease(9.8,12.4,t),travel=ease(11.2,14.3,t);
   // Begin inside the upper-stage center, then drift to the transmitting position.
   const payloadCenter=launchSequence.ship.localToWorld(V(0,.9,0));
-  satellite.position.copy(payloadCenter).lerp(V(-1.35,2.7,-.4),travel);
+  const drift=ease(14.3,21.5,t);
+  satellite.position.copy(payloadCenter).lerp(V(-1.6+drift*1.15,3.05+Math.sin(drift*Math.PI)*.16,-.65+drift*.4),travel);
   satellite.scale.setScalar(lerp(.035,1,emerge));
   scene.updateMatrixWorld(true);
   const destination=lunar.target.getWorldPosition(V());

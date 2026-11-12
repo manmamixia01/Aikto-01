@@ -8,6 +8,10 @@ const scene=new THREE.Scene(),launch=createStarshipSequence(scene),portal=create
 const V=(...v)=>new THREE.Vector3(...v);
 const surface=scene.children.find(o=>o.geometry?.type==='ShapeGeometry');
 scene.updateMatrixWorld(true);
+const cardBounds=new THREE.Box3().setFromObject(portal.card);
+assert.ok(cardBounds.min.y>=-1e-6&&cardBounds.max.y<.03,'card aperture has no slab or sidewalls');
+assert.ok(portal.height(-1,-1.8)<-2.6,'moon is recessed deeper below the card');
+assert.ok(portal.height(-1,-1.8)>portal.height(5,-1.8)+1,'lunar surface curves down away from its crown');
 const ray=new THREE.Raycaster(V(0,5,0),V(0,-1,0));
 assert.equal(ray.intersectObject(surface).length,0,'the card has a real opening');
 ray.set(V(7,5,0),V(0,-1,0));assert.ok(ray.intersectObject(surface).length,'foreground hides terrain outside the opening');
@@ -20,6 +24,9 @@ portal.update(24);assert.equal(portal.world.visible,false);assert.equal(portal.d
 launch.update(9);const before=launch.ship.scale.x;
 launch.update(11);assert.ok(launch.ship.scale.x>before*1.5,'upper stage grows');assert.ok(launch.ship.userData.fade<.5,'upper stage fades as payload emerges');
 launch.update(12);assert.equal(launch.ship.visible,false);
+launch.update(10.6);scene.updateMatrixWorld(true);
+assert.ok(new THREE.Box3().setFromObject(launch.booster).max.y<0,'detached booster sinks completely below the card');
+assert.equal(launch.booster.userData.fade,1,'booster stays opaque until it is submerged');
 const snapshot=()=>JSON.stringify([launch.ship.position,launch.ship.scale,launch.ship.quaternion,portal.doors.map(d=>d.position),portal.world.visible]);
 launch.update(11);portal.update(18);const expected=snapshot();launch.update(2);portal.update(0);launch.update(11);portal.update(18);assert.equal(snapshot(),expected,'backward seeking reproduces the scene');
 for(let t=0;t<64;t+=.2){launch.update(t);portal.update(t);scene.updateMatrixWorld(true);scene.traverse(o=>assert.ok(o.matrixWorld.elements.every(Number.isFinite),'finite transforms throughout loop'));}
