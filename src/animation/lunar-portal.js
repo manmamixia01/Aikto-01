@@ -5,7 +5,8 @@ const ease=(a,b,t)=>{const v=THREE.MathUtils.clamp((t-a)/(b-a),0,1);return v*v*(
 const mat=(color,metalness=.1,roughness=.65)=>new THREE.MeshStandardMaterial({color,metalness,roughness});
 const gray=mat('#c8c6bf',.4,.48),dark=mat('#27313a',.6,.4),soil=mat('#85817a',.03,1);
 
-export function createLunarPortal(scene){
+export function createLunarPortal(scene,{ar=false}={}){
+  const halfWidth=4.25,halfDepth=2.45; // 3 mm of the 91 × 55 mm card stays around the hole.
   const card=new THREE.Group(),world=new THREE.Group();scene.add(card,world);
   const mesh=(p,g,m,pos=V())=>{const o=new THREE.Mesh(g,m.clone());o.position.copy(pos);o.receiveShadow=true;o.castShadow=true;p.add(o);return o;};
   const box=(p,w,h,d,pos,m=gray)=>mesh(p,new THREE.BoxGeometry(w,h,d),m,pos);
@@ -14,25 +15,33 @@ export function createLunarPortal(scene){
   const bar=(p,a,b,r=.025,m=gray)=>{const o=cylinder(p,r,a.distanceTo(b),a.clone().add(b).multiplyScalar(.5),m);o.quaternion.setFromUnitVectors(V(0,1,0),b.clone().sub(a).normalize());return o;};
   // A real opening in the foreground plane: lunar geometry continues well past its edges.
   const surround=new THREE.Shape();surround.moveTo(-100,-100);surround.lineTo(100,-100);surround.lineTo(100,100);surround.lineTo(-100,100);surround.closePath();
-  const cutout=new THREE.Path();cutout.moveTo(-4.55,-2.75);cutout.lineTo(-4.55,2.75);cutout.lineTo(4.55,2.75);cutout.lineTo(4.55,-2.75);cutout.closePath();surround.holes.push(cutout);
+  const cutout=new THREE.Path();cutout.moveTo(-halfWidth,-halfDepth);cutout.lineTo(-halfWidth,halfDepth);cutout.lineTo(halfWidth,halfDepth);cutout.lineTo(halfWidth,-halfDepth);cutout.closePath();surround.holes.push(cutout);
   const ground=mesh(scene,new THREE.ShapeGeometry(surround),mat('#0b111b',.2,.72));ground.rotation.x=-Math.PI/2;ground.castShadow=false;
-  const clip=[new THREE.Plane(V(1,0,0),4.55),new THREE.Plane(V(-1,0,0),4.55)];
+  if(ar){ground.material.colorWrite=false;ground.renderOrder=-1000;}
+  const borderShape=new THREE.Shape();borderShape.moveTo(-4.55,-2.75);borderShape.lineTo(4.55,-2.75);borderShape.lineTo(4.55,2.75);borderShape.lineTo(-4.55,2.75);borderShape.closePath();borderShape.holes.push(cutout.clone());
+  const border=mesh(card,new THREE.ShapeGeometry(borderShape),mat('#17212c',.48,.36),V(0,.001,0));border.rotation.x=-Math.PI/2;border.castShadow=false;
+  if(ar)border.material.colorWrite=false;
+  const localClip=[new THREE.Plane(V(1,0,0),halfWidth),new THREE.Plane(V(-1,0,0),halfWidth),new THREE.Plane(V(0,0,1),halfDepth),new THREE.Plane(V(0,0,-1),halfDepth)];
+  const clip=localClip.map(p=>p.clone());
+  const updateClipPlanes=()=>{scene.updateWorldMatrix(true,false);clip.forEach((p,i)=>p.copy(localClip[i]).applyMatrix4(scene.matrixWorld));};
   const doors=[new THREE.Group(),new THREE.Group()];doors.forEach(d=>card.add(d));
   doors.forEach((d,i)=>{
     const sign=i===0?-1:1;
-    const surface=mesh(d,new THREE.PlaneGeometry(4.55,5.5),mat('#17212c',.48,.36),V(sign*2.275,0,0));surface.rotation.x=-Math.PI/2;
+    const surface=mesh(d,new THREE.PlaneGeometry(halfWidth,halfDepth*2),mat('#17212c',.48,.36),V(sign*halfWidth/2,0,0));surface.rotation.x=-Math.PI/2;
     for(let x=.5;x<4.5;x+=.5)line(d,[V(sign*x,.007,-2.5),V(sign*x,.007,2.5)],'#30434f',.18);
     for(let z=-2.5;z<=2.5;z+=.5)line(d,[V(sign*.04,.008,z),V(sign*4.35,.008,z)],'#30434f',.18);
     line(d,[V(sign*.018,.015,-2.65),V(sign*.018,.015,2.65)],'#8b9fa7',.5);
     d.traverse(o=>{if(o.material){o.material.clippingPlanes=clip;o.material.clipShadows=true;}});
   });
   line(card,[V(-4.55,.025,-2.75),V(4.55,.025,-2.75),V(4.55,.025,2.75),V(-4.55,.025,2.75),V(-4.55,.025,-2.75)],'#b6d4d8',.8);
+  line(card,[V(-halfWidth,.012,-halfDepth),V(halfWidth,.012,-halfDepth),V(halfWidth,.012,halfDepth),V(-halfWidth,.012,halfDepth),V(-halfWidth,.012,-halfDepth)],'#83999d',.5);
   for(const x of [-4.35,4.35])for(const z of [-2.55,2.55]){
-    const d=doors[x<0?0:1];line(d,[V(x-.07,.02,z),V(x+.07,.02,z)],'#b8cace');line(d,[V(x,.02,z-.07),V(x,.02,z+.07)],'#b8cace');
+    line(card,[V(x-.07,.02,z),V(x+.07,.02,z)],'#b8cace');line(card,[V(x,.02,z-.07),V(x,.02,z+.07)],'#b8cace');
   }
   doors.forEach(d=>d.traverse(o=>{if(o.material){o.material.clippingPlanes=clip;o.material.clipShadows=true;}}));
   // The opening and sliding leaves have no sidewalls or slab thickness.
   // Seeded terrain and crater bowls make all scrub positions reproducible.
+  if(ar){const space=mesh(world,new THREE.PlaneGeometry(160,160),new THREE.MeshBasicMaterial({color:0x020307}),V(0,-30,0));space.rotation.x=-Math.PI/2;space.castShadow=false;}
   let seed=713;const rand=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
   const craters=[[-2.9,.6,1.02],[2.9,-1.8,.8],[-.3,-2.4,.55],[3,2.5,1.1],[-4.6,-2,1.25]];
   for(let i=0;i<32;i++)craters.push([(rand()-.5)*19,(rand()-.5)*15,.12+rand()*.42]);
@@ -84,12 +93,14 @@ export function createLunarPortal(scene){
   const powerLine=line(base,[V(-.45,.05,1.1),V(-.6,.05,.55),V(.4,.05,.55),V(.4,.05,0)],'#e69a42');
   const update=t=>{
     const opening=ease(12,15,t)*(1-ease(21.2,23.5,t));
-    doors[0].position.x=-4.57*opening;doors[1].position.x=4.57*opening;
+    doors[0].position.x=-(halfWidth+.02)*opening;doors[1].position.x=(halfWidth+.02)*opening;
     world.visible=opening>.001;
     const power=ease(16.5,18,t)*(1-ease(20.5,21.5,t));
     panels.forEach(p=>p.material.emissiveIntensity=power*.65);
     litWindows.forEach(w=>w.material.emissiveIntensity=.08+power*1.3);
-    glow.intensity=power*4;powerLine.material.opacity=.25+power*.75;powerLine.material.transparent=true;
+    const lightScale=ar?scene.getWorldScale(V()).x:1;
+    glow.intensity=power*4*lightScale*lightScale;glow.distance=3*lightScale;
+    powerLine.material.opacity=.25+power*.75;powerLine.material.transparent=true;
   };
-  update(0);return {card,doors,world,target,update,height};
+  update(0);updateClipPlanes();return {card,doors,world,target,update,height,updateClipPlanes,halfWidth,halfDepth};
 }

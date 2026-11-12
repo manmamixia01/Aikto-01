@@ -55,7 +55,8 @@
 
     <script type="module">
       import * as THREE from "three";
-      import { createFlightAnimation } from "/ar/flight.js";
+      import { createARAnimation } from "/ar/scene.js";
+      import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
       import { MindARThree } from "mindar-image-three";
       import { Controller } from "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js";
 
@@ -114,6 +115,30 @@
         });
       };
 
+      // Camera-free rendering QA uses the exact AR adapter and moving anchor transforms.
+      const startPreview=async(config)=>{
+        hud.style.display='none';shade.style.display='none';
+        ar.style.background='radial-gradient(ellipse at center,#52656b,#202b32)';
+        const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
+        renderer.setClearColor(0,0);renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.localClippingEnabled=true;renderer.toneMapping=THREE.ACESFilmicToneMapping;
+        ar.appendChild(renderer.domElement);
+        const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(35,1,.01,50);camera.up.set(0,0,1);
+        const environment=new RoomEnvironment(),pmrem=new THREE.PMREMGenerator(renderer);scene.environment=pmrem.fromScene(environment,.04).texture;environment.dispose();pmrem.dispose();
+        scene.add(new THREE.HemisphereLight(0xdfffee,0x163325,3));const key=new THREE.DirectionalLight(0xffffff,3.4);key.position.set(-1.8,2.4,3.5);scene.add(key);
+        const root=new THREE.Group();root.rotation.set(.12,-.18,.16);scene.add(root);
+        const ratio=Math.max(.25,Math.min(4,Number(config.aspectRatio)||55/91));
+        const texture=await new THREE.TextureLoader().loadAsync('/ar/default-card.png');texture.colorSpace=THREE.SRGBColorSpace;
+        const paper=new THREE.Mesh(new THREE.PlaneGeometry(1,ratio),new THREE.MeshBasicMaterial({map:texture,depthWrite:false}));paper.renderOrder=-2000;root.add(paper);
+        const animation=await createARAnimation(root,ratio);
+        const params=new URLSearchParams(location.search),requestedTime=Number(params.get('t')??18);let time=Number.isFinite(requestedTime)?THREE.MathUtils.clamp(requestedTime,0,63.9):18;let paused=params.has('paused');
+        const ui=document.createElement('div');ui.style.cssText='position:fixed;bottom:20px;left:5%;width:90%;z-index:9;color:white;font:13px sans-serif;text-align:center';
+        ui.innerHTML='<p>AR描画プレビュー（カメラ未使用）</p><input aria-label="AR再生位置" id="arTimeline" type="range" min="0" max="63.9" step="0.1" style="width:80%"><button id="arPlay" style="margin-left:12px">再生</button>';
+        document.body.appendChild(ui);const slider=ui.querySelector('input'),play=ui.querySelector('button');slider.value=time;play.textContent=paused?'再生':'停止';slider.oninput=()=>{time=Number(slider.value);paused=true;play.textContent='再生';};play.onclick=()=>{paused=!paused;play.textContent=paused?'再生':'停止';};
+        const resize=()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.position.set(1.0,-1.65,1.8).multiplyScalar(innerWidth<700?1.6:1);camera.lookAt(0,0,.1);camera.updateProjectionMatrix();};addEventListener('resize',resize);resize();
+        setState('tracking','AR PREVIEW · 64s');const clock=new THREE.Clock();
+        renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),.1);if(!paused)time=(time+dt)%64;root.position.x=.05*Math.sin(time*.2);animation.update(time);slider.value=time;renderer.render(scene,camera);});
+      };
+
       const start = async () => {
         if (running) return;
         running = true;
@@ -121,6 +146,7 @@
         setState("searching", "CAMERA STARTING");
         try {
           const config = await getConfig();
+          if(new URLSearchParams(location.search).has("preview")){await startPreview(config);return;}
           setState("searching", "LOADING TARGET");
           const targetResponse = await fetch(config.targetUrl, { cache: "no-store" });
           if (!targetResponse.ok) throw new Error("認識データを読み込めませんでした。");
@@ -137,7 +163,11 @@
             uiError: "no"
           });
           const { renderer, scene, camera } = mindar;
-          renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+          renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+          renderer.localClippingEnabled=true;
+          renderer.toneMapping=THREE.ACESFilmicToneMapping;
+          const environment=new RoomEnvironment(),pmrem=new THREE.PMREMGenerator(renderer);
+          scene.environment=pmrem.fromScene(environment,.04).texture;environment.dispose();pmrem.dispose();
 
           scene.add(new THREE.HemisphereLight(0xdfffee, 0x163325, 3));
           const key = new THREE.DirectionalLight(0xffffff, 3.4);
@@ -150,20 +180,12 @@
 
           trackingFrame(root, ratio);
 
-          const targetGlow = new THREE.Mesh(
-            new THREE.PlaneGeometry(.98, Math.max(.2, ratio - .02)),
-            new THREE.MeshBasicMaterial({ color: 0x30f59a, transparent: true, opacity: .07, side: THREE.DoubleSide, depthTest: false, depthWrite: false })
-          );
-          targetGlow.position.z = .001;
-          targetGlow.renderOrder = 1;
-          root.add(targetGlow);
-
           setState("searching", "LOADING 3D");
-          const flight = await createFlightAnimation(root, ratio);
-          flight.update(0);
-          let flightTime = 0;
+          const animation = await createARAnimation(root, ratio);
+          animation.update(0);
+          let animationTime = 0;
           let tracked = false;
-          anchor.onTargetFound = () => { flightTime = 0; tracked = true; setState("tracking", "TRACKING · FLIGHT ACTIVE"); };
+          anchor.onTargetFound = () => { animationTime = 0; tracked = true; setState("tracking", "TRACKING · ANIMATION ACTIVE"); };
           anchor.onTargetLost = () => { tracked = false; setState("searching", "SEARCHING"); };
 
           // MindAR 1.2.5 wraps async startup in a Promise constructor. If target
@@ -250,7 +272,7 @@
           const clock = new THREE.Clock();
           renderer.setAnimationLoop(() => {
             const delta = Math.min(clock.getDelta(), .1);
-            if (tracked) { flightTime += delta; flight.update(flightTime); }
+            if (tracked) { animationTime += delta; animation.update(animationTime); }
             renderer.render(scene, camera);
           });
         } catch (error) {
