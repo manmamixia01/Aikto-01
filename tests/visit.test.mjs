@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import handler from "../api/visit.js";
+import { createVisitHandler } from "../api/visit.js";
+const handler = createVisitHandler({ nextVisitNumber: async () => 96 });
 import { collectVisitContext } from "../src/visit-context.js";
 
 const iphone = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1";
@@ -15,7 +16,7 @@ test("browser sends layout CSS pixels independently of screen pixels and DPR", (
   assert.deepEqual(result, {
     viewport: { width: 390, height: 720 },
     screen: { width: 390, height: 844 },
-    devicePixelRatio: 3, maxTouchPoints: 5
+    devicePixelRatio: 3, maxTouchPoints: 5, webdriver: false
   });
   assert.equal(Object.hasOwn(result, "userAgent"), false);
 });
@@ -29,7 +30,7 @@ test("visit notifications (all external requests mocked)", async (t) => {
   globalThis.fetch = async (url, options) => {
     requests.push({ url, options });
     if (url.startsWith("http://ip-api.com/")) {
-      return { json: async () => ({ status: "success", country: "Japan", regionName: "Tokyo", city: "Shinjuku" }) };
+      return { json: async () => ({ status: "success", country: "Japan", countryCode: "JP", regionName: "Tokyo", city: "Shinjuku" }) };
     }
     assert.equal(url, webhook, "no request may leave the test stub");
     return { ok: webhookOk };
@@ -55,7 +56,7 @@ test("visit notifications (all external requests mocked)", async (t) => {
       }, iphone, "POST", { "x-forwarded-for": "203.0.113.42" });
       assert.equal(response.statusCode, 200);
       for (const text of [
-        "Page: /works", "Country: Japan", "Region: Tokyo", "City: Shinjuku",
+        "累計訪問: 96回目", "Page: /works", "Country: Japan 🇯🇵", "Region: Tokyo", "City: Shinjuku",
         "Device (estimated): Smartphone", "Viewport: 390 x 720 CSS px",
         "Screen: 390 x 844 CSS px", "Pixel ratio (DPR): 3", "Orientation: Portrait"
       ]) assert.ok(message.content.includes(text), text);

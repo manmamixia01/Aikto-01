@@ -4,6 +4,7 @@ export function collectVisitContext(win = window, nav = navigator) {
     viewport: { width: win.innerWidth, height: win.innerHeight },
     screen: { width: win.screen?.width, height: win.screen?.height },
     devicePixelRatio: win.devicePixelRatio,
-    maxTouchPoints: nav.maxTouchPoints
+    maxTouchPoints: nav.maxTouchPoints,
+    webdriver: nav.webdriver === true
   };
 }
