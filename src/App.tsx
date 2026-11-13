@@ -25,6 +25,7 @@ import {
 import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 import gsap from "gsap";
+import { collectVisitContext } from "./visit-context.js";
 
 const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   const progressValue = useMotionValue(0);
@@ -1280,7 +1281,7 @@ function AppContent({
     fetch("/api/visit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ page }),
+      body: JSON.stringify({ page, ...collectVisitContext() }),
       keepalive: true
     }).catch(() => {});
   }, [location.pathname, location.search]);
