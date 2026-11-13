@@ -19,6 +19,41 @@ const sanitize = (value, fallback) => {
   return text.replace(/[\r\n`]/g, " ").slice(0, 180) || fallback;
 };
 
+
+// User-agent classification is an estimate, independent of viewport width.
+const deviceType = (userAgent, maxTouchPoints) => {
+  const ua = typeof userAgent === "string" ? userAgent.slice(0, 1024) : "";
+  if (/bot|crawler|spider|headless/i.test(ua)) return "Bot / automated";
+  if (/iPad|Tablet|PlayBook|Silk/i.test(ua) ||
+      (/Android/i.test(ua) && !/Mobile/i.test(ua)) ||
+      (/Macintosh/i.test(ua) && Number.isInteger(maxTouchPoints) &&
+       maxTouchPoints > 1 && maxTouchPoints <= 20)) return "Tablet";
+  if (/iPhone|iPod|Android.*Mobile|Windows Phone|Mobi/i.test(ua)) return "Smartphone";
+  if (/Windows NT|Macintosh|X11|CrOS|Linux/i.test(ua)) return "Desktop / laptop";
+  return "Unknown";
+};
+
+const dimension = (value) =>
+  Number.isInteger(value) && value > 0 && value <= 100000 ? value : null;
+
+const formatSize = (size) => {
+  const width = dimension(size?.width);
+  const height = dimension(size?.height);
+  return width !== null && height !== null ? `${width} x ${height} CSS px` : "Unknown";
+};
+
+const orientation = (viewport) => {
+  const width = dimension(viewport?.width);
+  const height = dimension(viewport?.height);
+  if (width === null || height === null) return "Unknown";
+  return width === height ? "Square" : width > height ? "Landscape" : "Portrait";
+};
+
+const formatPixelRatio = (value) =>
+  typeof value === "number" && Number.isFinite(value) && value > 0 && value <= 20
+    ? String(Math.round(value * 100) / 100)
+    : "Unknown";
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
@@ -65,6 +100,11 @@ export default async function handler(req, res) {
     `Country: ${country}`,
     `Region: ${region}`,
     `City: ${city}`,
+    `Device (estimated): ${deviceType(req.headers?.["user-agent"], req.body?.maxTouchPoints)}`,
+    `Viewport: ${formatSize(req.body?.viewport)}`,
+    `Screen: ${formatSize(req.body?.screen)}`,
+    `Pixel ratio (DPR): ${formatPixelRatio(req.body?.devicePixelRatio)}`,
+    `Orientation: ${orientation(req.body?.viewport)}`,
     `Time: ${accessedAt}`
   ].join("\n");
 
@@ -72,7 +112,7 @@ export default async function handler(req, res) {
     const discordResponse = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content })
+      body: JSON.stringify({ content, allowed_mentions: { parse: [] } })
     });
 
     if (!discordResponse.ok) {
