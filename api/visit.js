@@ -1,3 +1,4 @@
+import { estimateDeviceModel } from "../lib/device-models.js";
 import { incrementVisit } from "../lib/visit-counter.js";
 import { countryFlag, isAutomatedVisit } from "../lib/visit-helpers.js";
 
@@ -118,6 +119,8 @@ export function createVisitHandler({ nextVisitNumber = incrementVisit } = {}) {
       return;
     }
   
+    const category = automated ? "Bot / automated" : deviceType(req.headers?.["user-agent"], req.body?.maxTouchPoints);
+    const model = estimateDeviceModel(req.headers?.["user-agent"], req.body, category);
     const content = [
       "**Site access**",
       `Page: ${page}`,
@@ -125,7 +128,8 @@ export function createVisitHandler({ nextVisitNumber = incrementVisit } = {}) {
       automated ? "累計訪問: 対象外（Bot）" : countFailed ? "累計訪問: 集計エラー（未加算）" : `累計訪問: ${visitNumber}回目`,
       `Region: ${region}`,
       `City: ${city}`,
-      `Device (estimated): ${automated ? "Bot / automated" : deviceType(req.headers?.["user-agent"], req.body?.maxTouchPoints)}`,
+      `Device (estimated): ${category}`,
+      ...(model ? [`推定機種: ${model}`] : []),
       `Viewport: ${formatSize(req.body?.viewport)}`,
       `Screen: ${formatSize(req.body?.screen)}`,
       `Pixel ratio (DPR): ${formatPixelRatio(req.body?.devicePixelRatio)}`,
