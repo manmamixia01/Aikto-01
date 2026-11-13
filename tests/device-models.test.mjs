@@ -7,7 +7,7 @@ const context = { screen: { width: 390, height: 844 }, devicePixelRatio: 3 };
 test("shared iPhone dimensions produce uncertain candidate examples", () => {
   const result = estimate("iPhone", context, "Smartphone");
   assert.match(result, /iPhone 12 Pro.*iPhone 14/);
-  assert.match(result, /候補例.*未確定/);
+  assert.match(result, /^候補例:/);
 });
 test("rotation and in-app viewport height do not affect model candidates", () => {
   assert.equal(estimate("iPhone", context, "Smartphone"),
